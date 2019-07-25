@@ -7,12 +7,14 @@ COPY build/resources/main/entrypoint.sh entrypoint.sh
 
 RUN chmod +x entrypoint.sh
 
-COPY build/libs/dropbox-uploader.jar dropbox-uploader.jar
+COPY build/libs/dropbox-uploader-@projectversion@.jar dropbox-uploader.jar
 
 ENV LOCAL_FILE_PATH /upload
 
 ENTRYPOINT ["./entrypoint.sh"]
 
-#docker image build -f Dockerfile-untrusted -t nexus.iex.ec/dropbox-uploader:1.0.0 . --no-cache
+# gradle buildImage
+# or
+# docker image build -f Dockerfile-untrusted -t nexus.iex.ec/dropbox-uploader:1.0.0 . --no-cache
 
 #docker run -it --name dropbox-uploader -v /home/james/bla/0x1.zip:/upload -e REMOTE_FILENAME=0x1.zip -e ACCESS_TOKEN=rhX12y6f6hAAAAAAAAAACUi3pFkWsMTWtDF6UuAFxqrIYLiaMugCxuUDuzCyBkqB nexus.iex.ec/dropbox-uploader:1.0.0
