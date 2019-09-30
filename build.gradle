@@ -28,6 +28,9 @@ plugins {
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
+sourceCompatibility = 8
+targetCompatibility = 8
+
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
@@ -50,7 +53,7 @@ application {
     mainClassName = 'com.iexec.uploader.dropbox.App'
 }
 
-def imageName = "nexus.iex.ec/dropbox-uploader"
+def imageName = "nexus.iex.ec/tee-dropbox-uploader"
 
 
 project.ext.getDockerImageNameFull = {
@@ -66,7 +69,7 @@ task prepareDockerFile(type: Copy) {
 
 task buildImage(type: Exec) {
     description 'Building a dropbox-uploader Docker image'
-    commandLine("sh", "-c", "docker image build -f build/resources/main/Dockerfile-untrusted -t " + getDockerImageNameFull() + " . ")
+    commandLine("sh", "-c", "docker image build -f build/resources/main/Dockerfile -t " + getDockerImageNameFull() + " . ")
 }
 
 buildImage.dependsOn prepareDockerFile

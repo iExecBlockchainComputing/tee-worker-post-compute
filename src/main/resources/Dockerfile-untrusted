@@ -1,7 +1,4 @@
 FROM azul/zulu-openjdk-alpine:11.0.3-jre
-#FROM iexechub/java-scone:11.0.3
-
-#RUN apk add --no-cache bash coreutils openssl zip
 
 COPY build/resources/main/entrypoint.sh entrypoint.sh
 
@@ -17,4 +14,4 @@ ENTRYPOINT ["./entrypoint.sh"]
 # or
 # docker image build -f Dockerfile-untrusted -t nexus.iex.ec/dropbox-uploader:1.0.0 . --no-cache
 
-#docker run -it --name dropbox-uploader -v /home/james/bla/0x1.zip:/upload -e REMOTE_FILENAME=0x1.zip -e ACCESS_TOKEN=rhX12y6f6hAAAAAAAAAACUi3pFkWsMTWtDF6UuAFxqrIYLiaMugCxuUDuzCyBkqB nexus.iex.ec/dropbox-uploader:1.0.0
+#docker run -it --name dropbox-uploader -v /home/james/bla/0x1.zip:/upload -e DROPBOX_REMOTE_FILENAME=0x1.zip -e DROPBOX_ACCESS_TOKEN=rhX12y6f6hAAAAAAAAAACUi3pFkWsMTWtDF6UuAFxqrIYLiaMugCxuUDuzCyBkqB nexus.iex.ec/dropbox-uploader:1.0.0
