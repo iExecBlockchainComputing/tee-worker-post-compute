@@ -3,188 +3,50 @@
  */
 package com.iexec.uploader.dropbox;
 
-import com.dropbox.core.DbxException;
-import com.dropbox.core.DbxRequestConfig;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.users.FullAccount;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iexec.common.security.Signature;
-import com.iexec.common.tee.TeeEnclaveChallengeSignature;
-import com.iexec.common.utils.CredentialsUtils;
-import com.iexec.common.utils.HashUtils;
-import org.web3j.crypto.Hash;
+import com.iexec.uploader.dropbox.uploader.UploaderService;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.SignatureException;
 
-import static com.iexec.common.utils.BytesUtils.bytesToString;
-import static com.iexec.common.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
-import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignature;
+import static com.iexec.uploader.dropbox.signer.SignerService.signEnclaveChallengeAndWriteSignature;
+import static com.iexec.uploader.dropbox.utils.EnvUtils.getEnvVarOrExit;
 
 public class App {
-    //private static String ACCESS_TOKEN = "rhX12y6f6hAAAAAAAAAACUi3pFkWsMTWtDF6UuAFxqrIYLiaMugCxuUDuzCyBkqB";
-    //private static String LOCAL_FILE_PATH = "/home/james/bla/0x1.zip";
-    //private static String REMOTE_FILENAME = "0x1.zip";
-    /*
-      gradle clean build && java -jar  \
-            -DLOCAL_FILE_PATH="/home/james/bla/0x1.zip" \
-            -DREMOTE_FILENAME="0x1.zip" \
-            -DACCESS_TOKEN="rhX12y6f6hAAAAAAAAAACUi3pFkWsMTWtDF6UuAFxqrIYLiaMugCxuUDuzCyBkqB" \
-            build/libs/dropbox-uploader.jar
-
-    */
 
 
     public static void main(String[] args) throws IOException, SignatureException {
-        System.out.println("dropbox-uploader app started");
+        System.out.println("Tee-post-compute started");
+        System.out.println("(Uploader & Signer)");
 
-        System.out.println(System.getenv().toString());
+        System.out.println("DEBUG - en: " + System.getenv().toString());
 
-
-        String localFilePath = upload();
-
-        String teeChallengePrivateKey = getEnvVarOrExit("TEE_CHALLENGE_PRIVATE_KEY");
-        String taskId = getEnvVarOrExit("TASK_ID");
-        String workerAddress = getEnvVarOrExit("WORKER_ADDRESS");
-
-        System.out.println("*******************************");
-        System.out.println("teeChallengePrivateKey: " + teeChallengePrivateKey);
-        System.out.println("taskId: " + taskId);
-        System.out.println("workerAddress: " + workerAddress);
-        System.out.println("*******************************");
-
-        String resultFilePathName = localFilePath;//TODO: change that to uploaded.iexec file
-        byte[] content = Files.readAllBytes(Paths.get(resultFilePathName));
-        String resultDigest = bytesToString(Hash.sha256(content));
-
-        TeeEnclaveChallengeSignature sconeEnclaveSignatureFile = generateTeeEnclaveChallengeSignature(teeChallengePrivateKey, taskId, workerAddress, resultDigest);
-
-        boolean isSignatureFileCreated = writeTeeEnclaveChallengeSignatureFile(sconeEnclaveSignatureFile);
-
-        if (!isSignatureFileCreated) {
-            System.err.println("Failed to write enclaveSig.iexec (exiting)");
-            System.exit(1);
-        }
-
-        String messageHash = TeeEnclaveChallengeSignature.getMessageHash(
-                sconeEnclaveSignatureFile.getResultHash(),
-                sconeEnclaveSignatureFile.getResultSeal());
-
-        String expectedSigner = CredentialsUtils.getAddress(teeChallengePrivateKey);
-
-        // checking the worker will be able to verify it
-        boolean isExpectedSigner = isExpectedSignerOnSignedMessageHash(messageHash,
-                sconeEnclaveSignatureFile.getSignature(),
-                expectedSigner);
-
-        System.out.println("isExpected: " + isExpectedSigner);
-    }
-
-    private static String upload() {
+        System.out.println("Uploader started");
         String localFilePath = getEnvVarOrExit("LOCAL_FILE_PATH");
         String dropboxAccessToken = getEnvVarOrExit("DROPBOX_ACCESS_TOKEN");
         String remoteFilename = getEnvVarOrExit("REMOTE_FILENAME");
-
-        //TODO check new File(localFilePath) not null
-
-        DbxRequestConfig config = DbxRequestConfig.newBuilder("").build();
-        DbxClientV2 client = new DbxClientV2(config, dropboxAccessToken);
-
-        FullAccount account;
-        try {
-            account = client.users().getCurrentAccount();
-            String loginMessage = String.format("Uploading file with token [localFile:%s, remoteFile:%s, tokenOwner:%s(%s)]",
-                    localFilePath, remoteFilename, account.getEmail(), account.getName().getDisplayName());
-            System.out.println(loginMessage);
-        } catch (DbxException e) {
-            System.err.println("Can't log to Dropbox with provided token (exiting)");
-            System.exit(1);
-        }
-
-        boolean isUploaded = DropBoxService.uploadFile(client, new File(localFilePath), "/results/" + remoteFilename);
-
+        boolean isUploaded = UploaderService.uploadToDropBox(localFilePath, dropboxAccessToken, remoteFilename);
         if (!isUploaded) {
-            System.err.println("Upload failed (exiting)");
+            System.err.println("Uploader failed (exiting)");
             System.exit(1);
         } else {
             System.out.println("Uploaded!");
         }
-        return localFilePath;
-    }
 
+        System.out.println("Signer started");
+        String teeChallengePrivateKey = getEnvVarOrExit("TEE_CHALLENGE_PRIVATE_KEY");
+        String taskId = getEnvVarOrExit("TASK_ID");
+        String workerAddress = getEnvVarOrExit("WORKER_ADDRESS");
 
-    private static TeeEnclaveChallengeSignature generateTeeEnclaveChallengeSignature(String teeChallengePrivateKey, String taskId, String workerAddress, String resultDigest) throws IOException, SignatureException {
-        String resultHash = HashUtils.concatenateAndHash(taskId, resultDigest);
-        String resultSeal = HashUtils.concatenateAndHash(workerAddress, taskId, resultDigest);
-
-        String messageHash = TeeEnclaveChallengeSignature.getMessageHash(resultHash, resultSeal);
-
-        Signature enclaveSignature = signMessageHashAndGetSignature(messageHash, teeChallengePrivateKey);
-
-        return TeeEnclaveChallengeSignature.builder()
-                .resultDigest(resultDigest)
-                .resultHash(resultHash)
-                .resultSeal(resultSeal)
-                .signature(enclaveSignature)
-                .build();
-    }
-
-    private static boolean writeTeeEnclaveChallengeSignatureFile(TeeEnclaveChallengeSignature enclaveChallengeSignature) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String json = mapper.writeValueAsString(enclaveChallengeSignature);
-            System.out.println(json);
-            Files.write(Paths.get("/iexec_out/enclaveSig.iexec"), json.getBytes());
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-
-/*
-    public static void main(String[] args) throws IOException, SignatureException {
-        //TODO: move these values to unit tests
-        String resultDigest = "0xf0cea2ffdb802c106aef2a032b01c7d271a454473709016c2e2c406097acdfd3";
-        String taskId = "0xdf4cbbbe23c0d6d2d1285ef1f65327a6b57408dbcb8ed91b2a5d89b0404d47fd";
-        String workerAddress = "0x1a69b2EB604dB8eBa185dF03ea4F5288dcbbD248";
-        String teeChallengePrivateKey = "0x6dacd24b3d49d0c50c555aa728c60a57aa08beb363e3a90cce2e4e5d327c6ee2";
-
-        TeeEnclaveChallengeSignature sconeEnclaveSignatureFile = generateTeeEnclaveChallengeSignature(teeChallengePrivateKey, taskId, workerAddress, resultDigest);
-
-        boolean isSignatureFileCreated = writeTeeEnclaveChallengeSignatureFile(sconeEnclaveSignatureFile);
-
+        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(localFilePath, teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
-            System.err.println("Failed to write enclaveSig.iexec (exiting)");
+            System.err.println("Signer failed (exiting)");
             System.exit(1);
+        } else {
+            System.out.println("Signed!");
         }
 
-        String messageHash = TeeEnclaveChallengeSignature.getMessageHash(
-                sconeEnclaveSignatureFile.getResultHash(),
-                sconeEnclaveSignatureFile.getResultSeal());
-
-        String expectedSigner = CredentialsUtils.getAddress(teeChallengePrivateKey);
-
-        boolean isExpectedSigner = isExpectedSignerOnSignedMessageHash(messageHash,
-                sconeEnclaveSignatureFile.getSignature(),
-                expectedSigner);
-
-        System.out.println("isExpected: " + isExpectedSigner);
-
-        //System.exit(0);
-    }*/
-
-
-    private static String getEnvVarOrExit(String ENV_VAR) {
-        String envVar = System.getenv(ENV_VAR);
-        if (envVar == null || envVar.isEmpty()) {
-            System.err.println(ENV_VAR + " missing (exiting)");
-            System.exit(1);
-        }
-        return envVar;
+        System.exit(0);
     }
+
+
 }
