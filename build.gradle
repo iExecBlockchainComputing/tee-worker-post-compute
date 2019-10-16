@@ -36,9 +36,16 @@ repositories {
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
     mavenCentral()
+    maven {
+        url "https://nexus.iex.ec/repository/maven-public/"
+    }
 }
 
 dependencies {
+    // iexec
+    //compile "com.iexec.common:iexec-common:$iexecCommonVersion"
+    compile files("../iexec-common/build/libs/iexec-common-${iexecCommonVersion}.jar")
+
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:27.1-jre'
 
@@ -53,7 +60,7 @@ application {
     mainClassName = 'com.iexec.uploader.dropbox.App'
 }
 
-def imageName = "nexus.iex.ec/tee-dropbox-uploader"
+def imageName = "nexus.iex.ec/tee-post-compute"
 
 
 project.ext.getDockerImageNameFull = {
