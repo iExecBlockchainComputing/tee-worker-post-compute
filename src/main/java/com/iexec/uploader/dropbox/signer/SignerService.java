@@ -14,11 +14,16 @@ import java.nio.file.Paths;
 import static com.iexec.common.utils.BytesUtils.bytesToString;
 import static com.iexec.common.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignature;
+import static com.iexec.uploader.dropbox.utils.FilesUtils.getResultFilePath;
 
 public class SignerService {
 
-    public static boolean signEnclaveChallengeAndWriteSignature(String resultFilePath, String enclaveChallengePrivateKey,
+    private static final String ENCLAVE_SIG_DOT_IEXEC = "/iexec_out/enclaveSig.iexec";
+
+    public static boolean signEnclaveChallengeAndWriteSignature(String enclaveChallengePrivateKey,
                                                                 String taskId, String workerAddress) {
+
+        String resultFilePath = getResultFilePath(taskId);
         String resultDigest = SignerService.getResultDigestOfFile(resultFilePath); //TODO: change that to uploaded.iexec file
 
         TeeEnclaveChallengeSignature enclaveChallengeSignature =
@@ -34,7 +39,7 @@ public class SignerService {
             return false;
         }
 
-        boolean isSignatureFileCreated = writeTeeEnclaveChallengeSignatureFile(enclaveChallengeSignature);
+        boolean isSignatureFileCreated = writeTeeEnclaveChallengeSignatureFile(enclaveChallengeSignature, ENCLAVE_SIG_DOT_IEXEC);
         if (!isSignatureFileCreated) {
             System.err.println("Failed to write TeeEnclaveChallenge signature (exiting)");
             return false;
@@ -71,18 +76,19 @@ public class SignerService {
                 expectedSigner);
     }
 
-    private static boolean writeTeeEnclaveChallengeSignatureFile(TeeEnclaveChallengeSignature enclaveChallengeSignature) {
+    private static boolean writeTeeEnclaveChallengeSignatureFile(TeeEnclaveChallengeSignature enclaveChallengeSignature, String outputFilePath) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             String json = mapper.writeValueAsString(enclaveChallengeSignature);
             System.out.println(json);
-            Files.write(Paths.get("/iexec_out/enclaveSig.iexec"), json.getBytes());
+            Files.write(Paths.get(outputFilePath), json.getBytes());
             return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return false;
     }
+
 
     private static String getResultDigestOfFile(String filePath) {
         byte[] content = new byte[0];

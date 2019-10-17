@@ -10,6 +10,9 @@ import java.io.File;
 
 public class UploaderService {
 
+    public static final String DROPBOX_STORAGE = "dropbox";
+    public static final String IPFS_STORAGE = "ipfs";
+
     public static boolean uploadToDropBox(String localFilePath, String dropboxAccessToken, String remoteFilename) {
         //TODO check new File(localFilePath) not null
         DbxRequestConfig config = DbxRequestConfig.newBuilder("").build();
@@ -28,6 +31,12 @@ public class UploaderService {
 
         return DropBoxService.uploadFile(client, new File(localFilePath), "/results/" + remoteFilename);
     }
+
+    /*
+    public static String uploadToIpfs(String localFilePath) {
+        return resultLink;
+    }
+    */
 
 
 }
