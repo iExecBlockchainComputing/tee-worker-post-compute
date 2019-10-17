@@ -5,6 +5,7 @@ import com.iexec.common.security.Signature;
 import com.iexec.common.tee.TeeEnclaveChallengeSignature;
 import com.iexec.common.utils.CredentialsUtils;
 import com.iexec.common.utils.HashUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.web3j.crypto.Hash;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import static com.iexec.common.utils.SignatureUtils.isExpectedSignerOnSignedMess
 import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignature;
 import static com.iexec.uploader.dropbox.utils.FilesUtils.getResultFilePath;
 
+@Slf4j
 public class SignerService {
 
     private static final String ENCLAVE_SIG_DOT_IEXEC = "/iexec_out/enclaveSig.iexec";
@@ -80,7 +82,7 @@ public class SignerService {
         ObjectMapper mapper = new ObjectMapper();
         try {
             String json = mapper.writeValueAsString(enclaveChallengeSignature);
-            System.out.println(json);
+            log.info(json);
             Files.write(Paths.get(outputFilePath), json.getBytes());
             return true;
         } catch (IOException e) {
@@ -95,7 +97,7 @@ public class SignerService {
         try {
             content = Files.readAllBytes(Paths.get(filePath));
         } catch (IOException e) {
-            System.out.println("Failed to getResultDigestOfFile");
+            log.info("Failed to getResultDigestOfFile");
         }
         return bytesToString(Hash.sha256(content));
     }

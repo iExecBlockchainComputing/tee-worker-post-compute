@@ -5,22 +5,24 @@ package com.iexec.uploader.dropbox;
 
 import com.iexec.uploader.dropbox.uploader.UploaderService;
 import com.iexec.uploader.dropbox.utils.FilesUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.iexec.uploader.dropbox.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.uploader.dropbox.uploader.UploaderService.DROPBOX_STORAGE;
 import static com.iexec.uploader.dropbox.utils.EnvUtils.getEnvVarOrExit;
 
-//TODO 1 - Rename Github: dropbox-uploader -> tee-post-compute
-//TODO 2 - @Slf4j
+//TODO - Rename Github: dropbox-uploader -> tee-post-compute
+@Slf4j
 public class App {
 
     public static void main(String[] args) {
-        System.out.println("Tee-post-compute started");
-        System.out.println("(Uploader & Signer)");
+        log.info("Tee-post-compute started");
+        String taskId = getEnvVarOrExit("TASK_ID");
+        log.info("(Uploader & Signer) [taskId:{}]", taskId);
 
-        System.out.println("DEBUG - env: " + System.getenv().toString());
+        log.info("DEBUG - env: " + System.getenv().toString());
 
-        System.out.println("Uploader started");
+        log.info("Uploader started");
         String storageLocation = getEnvVarOrExit("IEXEC_REQUESTER_STORAGE_LOCATION");
 
         boolean isUploaded;
@@ -30,7 +32,7 @@ public class App {
                 isUploaded = uploadWithDropbox();
                 break;
             default:
-                System.out.println("Default result storage provider");
+                log.info("Default result storage provider");
                 isUploaded = uploadWithDropbox();
                 break;
         }
@@ -39,12 +41,11 @@ public class App {
             System.err.println("Uploader failed (exiting)");
             System.exit(1);
         } else {
-            System.out.println("Uploaded!");
+            log.info("Uploaded!");
         }
 
-        System.out.println("Signer started");
+        log.info("Signer started");
         String teeChallengePrivateKey = getEnvVarOrExit("TEE_CHALLENGE_PRIVATE_KEY");
-        String taskId = getEnvVarOrExit("TASK_ID");
         String workerAddress = getEnvVarOrExit("WORKER_ADDRESS");
 
         boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(teeChallengePrivateKey, taskId, workerAddress);
@@ -52,14 +53,14 @@ public class App {
             System.err.println("Signer failed (exiting)");
             System.exit(1);
         } else {
-            System.out.println("Signed!");
+            log.info("Signed!");
         }
 
         System.exit(0);
     }
 
     private static boolean uploadWithDropbox() {
-        System.out.println("Will use Dropbox");
+        log.info("Will use Dropbox");
         String taskId = getEnvVarOrExit("TASK_ID");
         String dropboxAccessToken = getEnvVarOrExit("DROPBOX_ACCESS_TOKEN");
         String remoteFilename = taskId + ".zip";

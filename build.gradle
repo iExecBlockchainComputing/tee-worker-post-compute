@@ -28,8 +28,8 @@ plugins {
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
-sourceCompatibility = 8
-targetCompatibility = 8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -54,7 +54,13 @@ dependencies {
 
     // Dropbox
     compile 'com.dropbox.core:dropbox-core-sdk:3.1.1'
+
+    // lombok
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    annotationProcessor "org.projectlombok:lombok:1.18.10"
+    compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
 }
+
 
 application {
     mainClassName = 'com.iexec.uploader.dropbox.App'
