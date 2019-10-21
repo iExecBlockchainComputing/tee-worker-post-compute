@@ -9,6 +9,7 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.users.FullAccount;
 
 import java.io.File;
+import java.util.Map;
 
 public class App {
     //private static String ACCESS_TOKEN = "rhX12y6f6hAAAAAAAAAACUi3pFkWsMTWtDF6UuAFxqrIYLiaMugCxuUDuzCyBkqB";
@@ -27,19 +28,21 @@ public class App {
     public static void main(String[] args) {
         System.out.println("dropbox-uploader app started");
 
-        String accessToken = System.getProperty("ACCESS_TOKEN");
+        String accessToken = System.getenv("DROPBOX_ACCESS_TOKEN");
         if (accessToken == null || accessToken.isEmpty()){
             System.err.println("ACCESS_TOKEN missing (exiting)");
             System.exit(1);
         }
 
-        String localFilePath = System.getProperty("LOCAL_FILE_PATH");
+        String localFilePath = System.getenv("LOCAL_FILE_PATH");
         if (localFilePath == null || localFilePath.isEmpty()){
             System.err.println("LOCAL_FILE_PATH missing (exiting)");
             System.exit(1);
         }
 
-        String remoteFilename = System.getProperty("REMOTE_FILENAME");
+        //TODO check new File(localFilePath) not null
+
+        String remoteFilename = System.getenv("REMOTE_FILENAME");
         if (remoteFilename == null || remoteFilename.isEmpty()){
             System.err.println("REMOTE_FILENAME missing (exiting)");
             System.exit(1);
