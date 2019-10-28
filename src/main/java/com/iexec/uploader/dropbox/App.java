@@ -3,10 +3,15 @@
  */
 package com.iexec.uploader.dropbox;
 
+import com.iexec.uploader.dropbox.encrypter.EncryptionService;
 import com.iexec.uploader.dropbox.uploader.UploaderService;
 import com.iexec.uploader.dropbox.utils.FilesUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.util.Base64;
+
+import static com.iexec.common.utils.FileHelper.zipFolder;
 import static com.iexec.uploader.dropbox.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.uploader.dropbox.uploader.UploaderService.DROPBOX_STORAGE;
 import static com.iexec.uploader.dropbox.utils.EnvUtils.getEnvVarOrExit;
@@ -18,25 +23,38 @@ public class App {
     public static void main(String[] args) {
         log.info("Tee-post-compute started");
         String taskId = getEnvVarOrExit("TASK_ID");
-        log.info("(Uploader & Signer) [taskId:{}]", taskId);
+        log.info("(Encrypter && Uploader & Signer) [taskId:{}]", taskId);
 
         log.info("DEBUG - env: " + System.getenv().toString());
 
+
+        log.info("Encrypter started");
+        String resultEncryptionMode = getEnvVarOrExit("IEXEC_REQUESTER_RESULT_ENCRYPTION_MODE");
+        boolean isSuccessfulEncryption;
+        switch (resultEncryptionMode) {
+            case "encrypted":
+            default:
+                log.info("Default result encryption mode");
+                isSuccessfulEncryption = encryptResult(taskId);
+                break;
+        }
+        if (!isSuccessfulEncryption) {
+            System.err.println("Encrypter failed (exiting)");
+            System.exit(1);
+        } else {
+            log.info("Encrypted!");
+        }
+
         log.info("Uploader started");
         String storageLocation = getEnvVarOrExit("IEXEC_REQUESTER_STORAGE_LOCATION");
-
         boolean isUploaded;
-
         switch (storageLocation) {
             case DROPBOX_STORAGE:
-                isUploaded = uploadWithDropbox();
-                break;
             default:
-                log.info("Default result storage provider");
+                log.info("Default result storage provider (dropbox)");
                 isUploaded = uploadWithDropbox();
                 break;
         }
-
         if (!isUploaded) {
             System.err.println("Uploader failed (exiting)");
             System.exit(1);
@@ -47,7 +65,6 @@ public class App {
         log.info("Signer started");
         String teeChallengePrivateKey = getEnvVarOrExit("TEE_CHALLENGE_PRIVATE_KEY");
         String workerAddress = getEnvVarOrExit("WORKER_ADDRESS");
-
         boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
             System.err.println("Signer failed (exiting)");
@@ -55,8 +72,31 @@ public class App {
         } else {
             log.info("Signed!");
         }
-
         System.exit(0);
+    }
+
+    private static boolean encryptResult(String taskId) {
+        String beneficiaryRsaPublicKeyBase64 = getEnvVarOrExit("BENEFICIARY_PUBLIC_KEY_BASE64");
+        //String beneficiaryRsaPublicKeyBase64 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEwR0FQTnJTWGZzUVJKZjNlUndOMApkOXIwaEhFL1Q2bmNOVkRDeHM4ZUNXa1h1SVJqUlBJVjYzdENyVGIyUVNNNWt0V080dE5UWm5wRVpBL2M0NXByCnAzWitwd0d1U1o4bjVxWWJoWDNUays0Q3BLZFFzMk1DSExMV0xsNGltMzE5eTlpL3l5Z3FoNXkyK01TQXU1ekMKeXpYZi9BV1E0Ry9jQkMvL3hEZWZYaEQvMmsvVDdsaTNmRXcrM1ZYWGZGQ215MVJWc1dBbkhmV1J3VVkwT3l4Lwp2TmFMUXplUThlVmcrdDY0OFFLRTRyUnRlM1Voa1UwMnBqTDQ3OFphWnFCOFhOYUwyU1JLUUxwWVg1ZHVLa0F6ClRzN2VwZ1ZsZ2tITDhCTmRZY1k0Sit5c2svTWRVYWVoSFdlb3VGL21YdTRObndLYkhPSWJ5OFJHeEdwNE5Ka3IKVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==";
+        String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
+
+        String inDataFilePath = FilesUtils.getResultFilePath(taskId);
+
+        //Encrypt result
+        String encryptedResultsFolder = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey);
+        if (encryptedResultsFolder.isEmpty()) {
+            log.error("Failed to encryptData (encryptedResultsFolder error) [taskId:{}]", taskId);
+            return false;
+        }
+        // Zip encrypted files
+        File encryptedFilesZip = zipFolder(encryptedResultsFolder);
+        if (encryptedFilesZip == null) {
+            log.error("Failed to encryptData (encryptedFilesZip error) [taskId:{}, encryptedResultsFolder:{}]", taskId, encryptedResultsFolder);
+            return false;
+        }
+
+        log.info("Encrypted result [taskId:{}, encryptedFilesZip:{}]", taskId, encryptedFilesZip);
+        return true;
     }
 
     private static boolean uploadWithDropbox() {
