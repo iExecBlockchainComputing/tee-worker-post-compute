@@ -18,8 +18,8 @@ public class EncryptionServiceTests {
 
     @Before
     public void before(){
-        plainTextRsaPublicKey = new String(readFile(DOT_SLASH + "test_rsa_key.pub"));
-        plainTextRsaPrivateKey = new String(readFile(DOT_SLASH + "test_rsa_key"));
+        plainTextRsaPublicKey = readFile(DOT_SLASH + "test_rsa_key.pub");
+        plainTextRsaPrivateKey = readFile(DOT_SLASH + "test_rsa_key");
     }
 
 
@@ -35,7 +35,7 @@ public class EncryptionServiceTests {
 
         // Encryption side
         String originalDataHash = BytesUtils.bytesToString(Hash.sha3(readFileBytes(DOT_SLASH + inDataFileName)));
-        String encryptedResultFolder = EncryptionService.encryptData(DOT_SLASH + inDataFileName, plainTextRsaPublicKey);
+        String encryptedResultFolder = EncryptionService.encryptData(DOT_SLASH + inDataFileName, plainTextRsaPublicKey, false);
 
         // Decryption side
         String clearDataHash = EncryptionService.decryptData(encryptedResultFolder + "/" + inDataFileName + ".aes", plainTextRsaPrivateKey);

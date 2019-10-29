@@ -5,128 +5,115 @@ package com.iexec.worker.tee.post.compute;
 
 import com.iexec.worker.tee.post.compute.encrypter.EncryptionService;
 import com.iexec.worker.tee.post.compute.uploader.UploaderService;
-import com.iexec.worker.tee.post.compute.utils.FilesUtils;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
+import com.iexec.worker.tee.post.compute.utils.FilesUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.Base64;
 
 import static com.iexec.common.utils.FileHelper.zipFolder;
+import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.ENCRYPTION_REQUESTED;
+import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.NO_ENCRYPTION;
 import static com.iexec.worker.tee.post.compute.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.DROPBOX_STORAGE;
+import static com.iexec.worker.tee.post.compute.utils.FilesUtils.IEXEC_OUT_PATH;
 
 @Slf4j
 public class App {
 
     public static void main(String[] args) {
-        log.info("Tee-post-compute started");
+        log.info("Tee worker post-compute started");
         String taskId = EnvUtils.getEnvVarOrExit("TASK_ID");
-        log.info("(Encrypter && Uploader & Signer) [taskId:{}]", taskId);
+
         log.info("DEBUG - env: " + System.getenv().toString());
 
-        if (!FilesUtils.isCompletedComputeFilePresent()){
-            log.error("COMPLETED_COMPUTE_IEXEC_FILE is missing [taskId:{}]", taskId);
+        String resultPath = prepareResult(IEXEC_OUT_PATH);
+        String resultToUpload = eventuallyEncryptResult(resultPath);
+        uploadResult(taskId, resultToUpload);
+        signResult(taskId, resultToUpload);
+
+        log.info("Tee worker post-compute completed!");
+    }
+
+    private static String prepareResult(String iexecOutPath) {
+        if (!FilesUtils.isCompletedComputeFilePresent()) {
+            log.error("Preparation stage failed (isCompletedComputeFilePresent)");
             exit();
         }
 
-        // Zip iexec_out
-        File iexecOutZip = zipFolder(FilesUtils.IEXEC_OUT_PATH);
+        File iexecOutZip = zipFolder(iexecOutPath);
         if (iexecOutZip == null) {
-            log.error("Failed to zip iexec_out [taskId:{}]", taskId);
+            log.error("Preparation stage failed (iexecOutZip)");
             exit();
         }
+        return iexecOutZip.getAbsolutePath();
+    }
 
+    private static String eventuallyEncryptResult(String inDataFilePath) {
+        log.info("Encryption stage started");
         String fileToUpload;
+        String resultEncryptionMode = EnvUtils.getEnvVar("IEXEC_REQUESTER_RESULT_ENCRYPTION");
 
-
-        log.info("Encrypter started");
-        String resultEncryption = EnvUtils.getEnvVarOrExit("IEXEC_REQUESTER_RESULT_ENCRYPTION");
-        boolean isSuccessfulEncryption;
-        switch (resultEncryption) {
-            case EncryptionService.NO_ENCRYPTION:
-                fileToUpload = FilesUtils.IEXEC_OUT_ZIP_PATH;
-                isSuccessfulEncryption = true;//just move result?
+        switch (resultEncryptionMode) {
+            case NO_ENCRYPTION:
+                log.info("Encryption stage mode: NO_ENCRYPTION");
+                fileToUpload = inDataFilePath;
                 break;
-            case EncryptionService.ENCRYPTION_REQUESTED:
+            case ENCRYPTION_REQUESTED:
             default:
-                log.info("Default result encryption");
-                fileToUpload = encryptResult(taskId);
-                isSuccessfulEncryption = !fileToUpload.isEmpty();//encryptResult(taskId);
+                log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
+                String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit("BENEFICIARY_PUBLIC_KEY_BASE64");
+                String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
+                fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
                 break;
         }
-        if (!isSuccessfulEncryption) {
-            System.err.println("Encrypter failed (exiting)");
+        if (fileToUpload.isEmpty()) {
+            log.error("Encryption stage failed");
             exit();
         } else {
-            log.info("Encrypted!");
+            log.info("Encryption stage completed");
         }
+        return fileToUpload;
+    }
 
-        log.info("Uploader started");
-        String storageLocation = EnvUtils.getEnvVarOrExit("IEXEC_REQUESTER_STORAGE_LOCATION");
+    private static void uploadResult(String taskId, String fileToUploadPath) {
+        log.info("Upload stage started");
+        String storageLocation = EnvUtils.getEnvVar("IEXEC_REQUESTER_STORAGE_LOCATION");
+
         boolean isUploaded;
         switch (storageLocation) {
             case DROPBOX_STORAGE:
             default:
-                log.info("Default result storage provider (dropbox)");
-                isUploaded = uploadWithDropbox(fileToUpload);
+                log.info("Upload stage mode: DROPBOX_STORAGE");
+                String dropboxAccessToken = EnvUtils.getEnvVarOrExit("DROPBOX_ACCESS_TOKEN");
+                String remoteFilename = taskId + ".zip";
+                isUploaded = UploaderService.uploadToDropBox(fileToUploadPath, dropboxAccessToken, remoteFilename);
                 break;
         }
         if (!isUploaded) {
-            System.err.println("Uploader failed (exiting)");
+            log.error("Upload stage failed");
             exit();
         } else {
-            log.info("Uploaded!");
+            log.info("Upload stage completed");
         }
+    }
 
-        log.info("Signer started");
+    private static void signResult(String taskId, String fileToUploadPath) {
+        log.info("Signing stage started");
         String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit("TEE_CHALLENGE_PRIVATE_KEY");
         String workerAddress = EnvUtils.getEnvVarOrExit("WORKER_ADDRESS");
-        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(fileToUpload, teeChallengePrivateKey, taskId, workerAddress);
+        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(fileToUploadPath, teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
-            System.err.println("Signer failed (exiting)");
+            log.error("Signing stage failed");
             exit();
         } else {
-            log.info("Signed!");
+            log.info("Signing stage completed");
         }
-        System.exit(0);
     }
 
     private static void exit() {
         System.exit(1);
-    }
-
-    private static String encryptResult(String taskId) {
-        String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit("BENEFICIARY_PUBLIC_KEY_BASE64");
-        //String beneficiaryRsaPublicKeyBase64 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEwR0FQTnJTWGZzUVJKZjNlUndOMApkOXIwaEhFL1Q2bmNOVkRDeHM4ZUNXa1h1SVJqUlBJVjYzdENyVGIyUVNNNWt0V080dE5UWm5wRVpBL2M0NXByCnAzWitwd0d1U1o4bjVxWWJoWDNUays0Q3BLZFFzMk1DSExMV0xsNGltMzE5eTlpL3l5Z3FoNXkyK01TQXU1ekMKeXpYZi9BV1E0Ry9jQkMvL3hEZWZYaEQvMmsvVDdsaTNmRXcrM1ZYWGZGQ215MVJWc1dBbkhmV1J3VVkwT3l4Lwp2TmFMUXplUThlVmcrdDY0OFFLRTRyUnRlM1Voa1UwMnBqTDQ3OFphWnFCOFhOYUwyU1JLUUxwWVg1ZHVLa0F6ClRzN2VwZ1ZsZ2tITDhCTmRZY1k0Sit5c2svTWRVYWVoSFdlb3VGL21YdTRObndLYkhPSWJ5OFJHeEdwNE5Ka3IKVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==";
-        String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
-
-        String inDataFilePath = FilesUtils.getIexecOutZipPath();
-
-        //Encrypt result
-        String encryptedResultsFolder = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey);
-        if (encryptedResultsFolder.isEmpty()) {
-            log.error("Failed to encryptData (encryptedResultsFolder error) [taskId:{}]", taskId);
-            return "";
-        }
-        // Zip encrypted files
-        File encryptedFilesZip = zipFolder(encryptedResultsFolder);
-        if (encryptedFilesZip == null) {
-            log.error("Failed to encryptData (encryptedFilesZip error) [taskId:{}, encryptedResultsFolder:{}]", taskId, encryptedResultsFolder);
-            return "";
-        }
-
-        log.info("Encrypted result [taskId:{}, encryptedFilesZip:{}]", taskId, encryptedFilesZip);
-        return encryptedFilesZip.getAbsolutePath();
-    }
-
-    private static boolean uploadWithDropbox(String fileToUpload) {
-        log.info("Will use Dropbox");
-        String taskId = EnvUtils.getEnvVarOrExit("TASK_ID");
-        String dropboxAccessToken = EnvUtils.getEnvVarOrExit("DROPBOX_ACCESS_TOKEN");
-        String remoteFilename = taskId + ".zip";
-
-        return UploaderService.uploadToDropBox(fileToUpload, dropboxAccessToken, remoteFilename);//
     }
 
 

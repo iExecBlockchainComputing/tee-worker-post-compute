@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.web3j.crypto.Hash;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -12,6 +13,7 @@ import java.security.PublicKey;
 import static com.iexec.common.security.CipherHelper.*;
 import static com.iexec.common.utils.FileHelper.*;
 
+//TODO Move EncryptionService to common when needed
 @Slf4j
 public class EncryptionService {
 
@@ -24,7 +26,7 @@ public class EncryptionService {
      * #2: AES key is encrypted with RSA key
      *
      * */
-    public static String encryptData(String inDataFilePath, String plainTextRsaPub) {
+    public static String encryptData(String inDataFilePath, String plainTextRsaPub, boolean produceZip) {
         String inDataFilename = FilenameUtils.getName(inDataFilePath);
         String outEncryptedDataFilename = inDataFilename + ".aes";
         String outEncryptedAesKeyFilename = "aesKey.rsa";
@@ -79,6 +81,16 @@ public class EncryptionService {
         if (!isEncryptedAesKeyStored) {
             log.error("Failed to encryptData (isEncryptedAesKeyStored error) [inDataFilePath:{}]", inDataFilePath);
             return "";
+        }
+
+        if (produceZip) {
+            // Zip encrypted files folder
+            File outEncZip = zipFolder(outEncDir);
+            if (outEncZip == null) {
+                log.error("Failed to encryptData (outEncZip error) [inDataFilePath:{}]", inDataFilePath);
+                return "";
+            }
+            return outEncZip.getAbsolutePath();
         }
 
         return outEncDir;
