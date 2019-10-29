@@ -15,6 +15,7 @@ import static com.iexec.common.utils.FileHelper.zipFolder;
 import static com.iexec.uploader.dropbox.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.uploader.dropbox.uploader.UploaderService.DROPBOX_STORAGE;
 import static com.iexec.uploader.dropbox.utils.EnvUtils.getEnvVarOrExit;
+import static com.iexec.uploader.dropbox.utils.FilesUtils.*;
 
 //TODO - Rename Github: dropbox-uploader -> tee-post-compute
 @Slf4j
@@ -24,23 +25,41 @@ public class App {
         log.info("Tee-post-compute started");
         String taskId = getEnvVarOrExit("TASK_ID");
         log.info("(Encrypter && Uploader & Signer) [taskId:{}]", taskId);
-
         log.info("DEBUG - env: " + System.getenv().toString());
+
+        if (!isCompletedComputeFilePresent()){
+            log.error("COMPLETED_COMPUTE_IEXEC_FILE is missing [taskId:{}]", taskId);
+            exit();
+        }
+
+        // Zip iexec_out
+        File iexecOutZip = zipFolder(IEXEC_OUT_PATH);
+        if (iexecOutZip == null) {
+            log.error("Failed to zip iexec_out [taskId:{}]", taskId);
+            exit();
+        }
+
+        String fileToUpload;
 
 
         log.info("Encrypter started");
-        String resultEncryptionMode = getEnvVarOrExit("IEXEC_REQUESTER_RESULT_ENCRYPTION_MODE");
+        String resultEncryption = getEnvVarOrExit("IEXEC_REQUESTER_RESULT_ENCRYPTION");
         boolean isSuccessfulEncryption;
-        switch (resultEncryptionMode) {
-            case "encrypted":
+        switch (resultEncryption) {
+            case EncryptionService.NO_ENCRYPTION:
+                fileToUpload = IEXEC_OUT_ZIP_PATH;
+                isSuccessfulEncryption = true;//just move result?
+                break;
+            case EncryptionService.ENCRYPTION_REQUESTED:
             default:
-                log.info("Default result encryption mode");
-                isSuccessfulEncryption = encryptResult(taskId);
+                log.info("Default result encryption");
+                fileToUpload = encryptResult(taskId);
+                isSuccessfulEncryption = !fileToUpload.isEmpty();//encryptResult(taskId);
                 break;
         }
         if (!isSuccessfulEncryption) {
             System.err.println("Encrypter failed (exiting)");
-            System.exit(1);
+            exit();
         } else {
             log.info("Encrypted!");
         }
@@ -52,12 +71,12 @@ public class App {
             case DROPBOX_STORAGE:
             default:
                 log.info("Default result storage provider (dropbox)");
-                isUploaded = uploadWithDropbox();
+                isUploaded = uploadWithDropbox(fileToUpload);
                 break;
         }
         if (!isUploaded) {
             System.err.println("Uploader failed (exiting)");
-            System.exit(1);
+            exit();
         } else {
             log.info("Uploaded!");
         }
@@ -65,47 +84,51 @@ public class App {
         log.info("Signer started");
         String teeChallengePrivateKey = getEnvVarOrExit("TEE_CHALLENGE_PRIVATE_KEY");
         String workerAddress = getEnvVarOrExit("WORKER_ADDRESS");
-        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(teeChallengePrivateKey, taskId, workerAddress);
+        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(fileToUpload, teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
             System.err.println("Signer failed (exiting)");
-            System.exit(1);
+            exit();
         } else {
             log.info("Signed!");
         }
         System.exit(0);
     }
 
-    private static boolean encryptResult(String taskId) {
+    private static void exit() {
+        System.exit(1);
+    }
+
+    private static String encryptResult(String taskId) {
         String beneficiaryRsaPublicKeyBase64 = getEnvVarOrExit("BENEFICIARY_PUBLIC_KEY_BASE64");
         //String beneficiaryRsaPublicKeyBase64 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEwR0FQTnJTWGZzUVJKZjNlUndOMApkOXIwaEhFL1Q2bmNOVkRDeHM4ZUNXa1h1SVJqUlBJVjYzdENyVGIyUVNNNWt0V080dE5UWm5wRVpBL2M0NXByCnAzWitwd0d1U1o4bjVxWWJoWDNUays0Q3BLZFFzMk1DSExMV0xsNGltMzE5eTlpL3l5Z3FoNXkyK01TQXU1ekMKeXpYZi9BV1E0Ry9jQkMvL3hEZWZYaEQvMmsvVDdsaTNmRXcrM1ZYWGZGQ215MVJWc1dBbkhmV1J3VVkwT3l4Lwp2TmFMUXplUThlVmcrdDY0OFFLRTRyUnRlM1Voa1UwMnBqTDQ3OFphWnFCOFhOYUwyU1JLUUxwWVg1ZHVLa0F6ClRzN2VwZ1ZsZ2tITDhCTmRZY1k0Sit5c2svTWRVYWVoSFdlb3VGL21YdTRObndLYkhPSWJ5OFJHeEdwNE5Ka3IKVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==";
         String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
 
-        String inDataFilePath = FilesUtils.getResultFilePath(taskId);
+        String inDataFilePath = FilesUtils.getIexecOutZipPath();
 
         //Encrypt result
         String encryptedResultsFolder = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey);
         if (encryptedResultsFolder.isEmpty()) {
             log.error("Failed to encryptData (encryptedResultsFolder error) [taskId:{}]", taskId);
-            return false;
+            return "";
         }
         // Zip encrypted files
         File encryptedFilesZip = zipFolder(encryptedResultsFolder);
         if (encryptedFilesZip == null) {
             log.error("Failed to encryptData (encryptedFilesZip error) [taskId:{}, encryptedResultsFolder:{}]", taskId, encryptedResultsFolder);
-            return false;
+            return "";
         }
 
         log.info("Encrypted result [taskId:{}, encryptedFilesZip:{}]", taskId, encryptedFilesZip);
-        return true;
+        return encryptedFilesZip.getAbsolutePath();
     }
 
-    private static boolean uploadWithDropbox() {
+    private static boolean uploadWithDropbox(String fileToUpload) {
         log.info("Will use Dropbox");
         String taskId = getEnvVarOrExit("TASK_ID");
         String dropboxAccessToken = getEnvVarOrExit("DROPBOX_ACCESS_TOKEN");
         String remoteFilename = taskId + ".zip";
 
-        return UploaderService.uploadToDropBox(FilesUtils.getResultFilePath(taskId), dropboxAccessToken, remoteFilename);
+        return UploaderService.uploadToDropBox(fileToUpload, dropboxAccessToken, remoteFilename);//
     }
 
 

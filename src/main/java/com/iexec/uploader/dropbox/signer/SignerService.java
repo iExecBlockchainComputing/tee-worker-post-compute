@@ -15,18 +15,18 @@ import java.nio.file.Paths;
 import static com.iexec.common.utils.BytesUtils.bytesToString;
 import static com.iexec.common.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignature;
-import static com.iexec.uploader.dropbox.utils.FilesUtils.getResultFilePath;
+import static com.iexec.uploader.dropbox.utils.FilesUtils.getIexecOutZipPath;
 
 @Slf4j
 public class SignerService {
 
     private static final String ENCLAVE_SIG_DOT_IEXEC = "/iexec_out/enclaveSig.iexec";
 
-    public static boolean signEnclaveChallengeAndWriteSignature(String enclaveChallengePrivateKey,
+    public static boolean signEnclaveChallengeAndWriteSignature(String uploadedResultFile, String enclaveChallengePrivateKey,
                                                                 String taskId, String workerAddress) {
 
-        String resultFilePath = getResultFilePath(taskId);
-        String resultDigest = SignerService.getResultDigestOfFile(resultFilePath); //TODO: change that to uploaded.iexec file
+        //String resultFilePath = getIexecOutZipPath();
+        String resultDigest = SignerService.getResultDigestOfFile(uploadedResultFile); //TODO: change that to uploaded.iexec file
 
         TeeEnclaveChallengeSignature enclaveChallengeSignature =
                 generateTeeEnclaveChallengeSignature(enclaveChallengePrivateKey, taskId, workerAddress, resultDigest);

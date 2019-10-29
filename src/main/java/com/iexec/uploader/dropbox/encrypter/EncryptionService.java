@@ -15,13 +15,16 @@ import static com.iexec.common.utils.FileHelper.*;
 @Slf4j
 public class EncryptionService {
 
+    public static final String NO_ENCRYPTION = "none";
+    public static final String ENCRYPTION_REQUESTED = "yes";
+
     /*
      *
      * #1: Large file encryption is made with AES
      * #2: AES key is encrypted with RSA key
      *
      * */
-    public static String encryptData(String inDataFilePath, String plainTextRsaPub) {//String rasPublicKeyPath
+    public static String encryptData(String inDataFilePath, String plainTextRsaPub) {
         String inDataFilename = FilenameUtils.getName(inDataFilePath);
         String outEncryptedDataFilename = inDataFilename + ".aes";
         String outEncryptedAesKeyFilename = "aesKey.rsa";
@@ -60,7 +63,7 @@ public class EncryptionService {
             return "";
         }
         // Get RSA public key
-        PublicKey rsaPublicKey = plainText2RsaPublicKey(plainTextRsaPub);// rasPublicKeyPath
+        PublicKey rsaPublicKey = plainText2RsaPublicKey(plainTextRsaPub);
         if (rsaPublicKey == null) {
             log.error("Failed to encryptData (getRsaPublicKey error) [inDataFilePath:{}]", inDataFilePath);
             return "";
