@@ -7,7 +7,7 @@ RUN apk add bash --no-cache
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.5/community" >> /etc/apk/repositories \
     && apk update
 
-COPY build/libs/dropbox-uploader-@projectversion@.jar /app/dropbox-uploader.jar
+COPY build/libs/tee-worker-post-compute-@projectversion@.jar /app/tee-worker-post-compute.jar
 COPY build/resources/main/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
@@ -44,4 +44,4 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 # gradle buildImage
 # or
-# docker image build -f Dockerfile-untrusted -t nexus.iex.ec/dropbox-uploader:1.0.0 . --no-cache
+# docker image build -f Dockerfile-untrusted -t nexus.iex.ec/tee-worker-post-compute:1.0.0 . --no-cache

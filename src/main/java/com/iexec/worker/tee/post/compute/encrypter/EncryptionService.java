@@ -1,4 +1,4 @@
-package com.iexec.uploader.dropbox.encrypter;
+package com.iexec.worker.tee.post.compute.encrypter;
 
 import com.iexec.common.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;

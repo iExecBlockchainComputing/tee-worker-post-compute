@@ -1,4 +1,4 @@
-package com.iexec.uploader.dropbox.utils;
+package com.iexec.worker.tee.post.compute.utils;
 
 import lombok.extern.slf4j.Slf4j;
 

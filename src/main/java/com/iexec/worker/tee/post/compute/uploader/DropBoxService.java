@@ -1,4 +1,4 @@
-package com.iexec.uploader.dropbox.uploader;
+package com.iexec.worker.tee.post.compute.uploader;
 
 import com.dropbox.core.DbxException;
 import com.dropbox.core.util.IOUtil.ProgressListener;

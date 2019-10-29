@@ -1,4 +1,4 @@
-package com.iexec.uploader.dropbox.signer;
+package com.iexec.worker.tee.post.compute.signer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.common.security.Signature;
@@ -15,7 +15,6 @@ import java.nio.file.Paths;
 import static com.iexec.common.utils.BytesUtils.bytesToString;
 import static com.iexec.common.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignature;
-import static com.iexec.uploader.dropbox.utils.FilesUtils.getIexecOutZipPath;
 
 @Slf4j
 public class SignerService {

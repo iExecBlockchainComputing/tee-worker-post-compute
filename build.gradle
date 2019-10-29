@@ -63,10 +63,10 @@ dependencies {
 
 
 application {
-    mainClassName = 'com.iexec.uploader.dropbox.App'
+    mainClassName = 'com.iexec.worker.tee.post.compute.App'
 }
 
-def imageName = "nexus.iex.ec/tee-post-compute"
+def imageName = "nexus.iex.ec/tee-worker-post-compute"
 
 
 project.ext.getDockerImageNameFull = {
@@ -81,7 +81,7 @@ task prepareDockerFile(type: Copy) {
 }
 
 task buildImage(type: Exec) {
-    description 'Building a dropbox-uploader Docker image'
+    description 'Building a tee-worker-post-compute Docker image'
     commandLine("sh", "-c", "docker image build -f build/resources/main/Dockerfile -t " + getDockerImageNameFull() + " . ")
 }
 

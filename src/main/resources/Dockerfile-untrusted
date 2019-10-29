@@ -4,7 +4,7 @@ COPY build/resources/main/entrypoint.sh entrypoint.sh
 
 RUN chmod +x entrypoint.sh
 
-COPY build/libs/dropbox-uploader-@projectversion@.jar dropbox-uploader.jar
+COPY build/libs/tee-worker-post-compute-@projectversion@.jar tee-worker-post-compute.jar
 
 ENV LOCAL_FILE_PATH /upload
 
@@ -12,6 +12,6 @@ ENTRYPOINT ["./entrypoint.sh"]
 
 # gradle buildImage
 # or
-# docker image build -f Dockerfile-untrusted -t nexus.iex.ec/dropbox-uploader:1.0.0 . --no-cache
+# docker image build -f Dockerfile-untrusted -t nexus.iex.ec/tee-worker-post-compute:1.0.0 . --no-cache
 
 #docker run -it --name dropbox-uploader -v /home/james/bla/0x1.zip:/upload -e DROPBOX_REMOTE_FILENAME=0x1.zip -e DROPBOX_ACCESS_TOKEN=rhX12y6f6hAAAAAAAAAACUi3pFkWsMTWtDF6UuAFxqrIYLiaMugCxuUDuzCyBkqB nexus.iex.ec/dropbox-uploader:1.0.0
