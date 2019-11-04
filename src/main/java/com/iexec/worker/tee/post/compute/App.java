@@ -22,9 +22,18 @@ import static com.iexec.worker.tee.post.compute.utils.FilesUtils.IEXEC_OUT_PATH;
 @Slf4j
 public class App {
 
+    //TODO: move these fields to common
+    private static final String TASK_ID = "TASK_ID";
+    private static final String WORKER_ADDRESS = "WORKER_ADDRESS";
+    private static final String IEXEC_REQUESTER_RESULT_ENCRYPTION = "IEXEC_REQUESTER_RESULT_ENCRYPTION";
+    private static final String IEXEC_REQUESTER_STORAGE_LOCATION = "IEXEC_REQUESTER_STORAGE_LOCATION";
+    private static final String BENEFICIARY_PUBLIC_KEY_BASE64 = "BENEFICIARY_PUBLIC_KEY_BASE64";
+    private static final String REQUESTER_DROPBOX_TOKEN = "DROPBOX_ACCESS_TOKEN";
+    private static final String TEE_CHALLENGE_PRIVATE_KEY = "TEE_CHALLENGE_PRIVATE_KEY";
+
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
-        String taskId = EnvUtils.getEnvVarOrExit("TASK_ID");
+        String taskId = EnvUtils.getEnvVarOrExit(TASK_ID);
 
         log.info("DEBUG - env: " + System.getenv().toString());
 
@@ -53,7 +62,7 @@ public class App {
     private static String eventuallyEncryptResult(String inDataFilePath) {
         log.info("Encryption stage started");
         String fileToUpload;
-        String resultEncryptionMode = EnvUtils.getEnvVar("IEXEC_REQUESTER_RESULT_ENCRYPTION");
+        String resultEncryptionMode = EnvUtils.getEnvVar(IEXEC_REQUESTER_RESULT_ENCRYPTION);
 
         switch (resultEncryptionMode) {
             case NO_ENCRYPTION:
@@ -63,7 +72,7 @@ public class App {
             case ENCRYPTION_REQUESTED:
             default:
                 log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
-                String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit("BENEFICIARY_PUBLIC_KEY_BASE64");
+                String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit(BENEFICIARY_PUBLIC_KEY_BASE64);
                 String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
                 fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
                 break;
@@ -79,14 +88,14 @@ public class App {
 
     private static void uploadResult(String taskId, String fileToUploadPath) {
         log.info("Upload stage started");
-        String storageLocation = EnvUtils.getEnvVar("IEXEC_REQUESTER_STORAGE_LOCATION");
+        String storageLocation = EnvUtils.getEnvVar(IEXEC_REQUESTER_STORAGE_LOCATION);
 
         boolean isUploaded;
         switch (storageLocation) {
             case DROPBOX_STORAGE:
             default:
                 log.info("Upload stage mode: DROPBOX_STORAGE");
-                String dropboxAccessToken = EnvUtils.getEnvVarOrExit("DROPBOX_ACCESS_TOKEN");
+                String dropboxAccessToken = EnvUtils.getEnvVarOrExit(REQUESTER_DROPBOX_TOKEN);
                 String remoteFilename = taskId + ".zip";
                 isUploaded = UploaderService.uploadToDropBox(fileToUploadPath, dropboxAccessToken, remoteFilename);
                 break;
@@ -101,8 +110,8 @@ public class App {
 
     private static void signResult(String taskId, String fileToUploadPath) {
         log.info("Signing stage started");
-        String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit("TEE_CHALLENGE_PRIVATE_KEY");
-        String workerAddress = EnvUtils.getEnvVarOrExit("WORKER_ADDRESS");
+        String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit(TEE_CHALLENGE_PRIVATE_KEY);
+        String workerAddress = EnvUtils.getEnvVarOrExit(WORKER_ADDRESS);
         boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(fileToUploadPath, teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
             log.error("Signing stage failed");
