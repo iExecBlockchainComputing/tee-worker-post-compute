@@ -1,10 +1,11 @@
-package com.iexec.uploader.dropbox;
+package com.iexec.worker.tee.post.compute.uploader;
 
 import com.dropbox.core.DbxException;
 import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.files.WriteMode;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +19,7 @@ import java.util.Date;
  * https://github.com/dropbox/dropbox-sdk-java/blob/master/examples/upload-file/src/main/java/com/dropbox/core/examples/upload_file/Main.java#L48
  *
  * */
+@Slf4j
 public class DropBoxService {
 
     /**
@@ -35,7 +37,7 @@ public class DropBoxService {
                     .withClientModified(new Date(localFile.lastModified()))
                     .uploadAndFinish(in, progressListener);
 
-            System.out.println(metadata.toStringMultiline());
+            log.info(metadata.toStringMultiline());
             return true;
         } catch (DbxException ex) {
             System.err.println("Error uploading to Dropbox " + ex.getMessage());
