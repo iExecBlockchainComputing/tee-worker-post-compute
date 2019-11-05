@@ -64,6 +64,7 @@ public class App {
         String fileToUpload;
         String resultEncryptionMode = EnvUtils.getEnvVar(IEXEC_REQUESTER_RESULT_ENCRYPTION);
 
+        // TODO: use true/false instead of encryptionMode (since we have only two options)
         switch (resultEncryptionMode) {
             case NO_ENCRYPTION:
                 log.info("Encryption stage mode: NO_ENCRYPTION");

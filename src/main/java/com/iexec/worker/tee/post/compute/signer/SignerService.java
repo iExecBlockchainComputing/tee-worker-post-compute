@@ -19,6 +19,7 @@ import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignatu
 @Slf4j
 public class SignerService {
 
+    // TODO: put this in iexec-common and use it also in the worker
     private static final String ENCLAVE_SIG_DOT_IEXEC = "/iexec_out/enclaveSig.iexec";
 
     public static boolean signEnclaveChallengeAndWriteSignature(String uploadedResultFilePath, String enclaveChallengePrivateKey,
