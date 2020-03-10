@@ -28,7 +28,7 @@ public class DropBoxService {
      * <p>
      * Please go back to the original sample for supporting big file uploads
      */
-    public static boolean uploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
+    public static String uploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
         try (InputStream in = new FileInputStream(localFile)) {
             ProgressListener progressListener = l -> printProgress(l, localFile.length());
 
@@ -38,13 +38,13 @@ public class DropBoxService {
                     .uploadAndFinish(in, progressListener);
 
             log.info(metadata.toStringMultiline());
-            return true;
+            return metadata.getPathDisplay();
         } catch (DbxException ex) {
             System.err.println("Error uploading to Dropbox " + ex.getMessage());
         } catch (IOException ex) {
             System.err.println("Error reading from file \"" + localFile + "\": " + ex.getMessage());
         }
-        return false;
+        return "";
     }
 
 

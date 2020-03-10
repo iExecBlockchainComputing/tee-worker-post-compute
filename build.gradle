@@ -43,8 +43,8 @@ repositories {
 
 dependencies {
     // iexec
-    compile "com.iexec.common:iexec-common:$iexecCommonVersion"
-    //compile files("../iexec-common/build/libs/iexec-common-${iexecCommonVersion}.jar")
+    //compile "com.iexec.common:iexec-common:$iexecCommonVersion"
+    compile files("../iexec-common/build/libs/iexec-common-${iexecCommonVersion}.jar")
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:27.1-jre'
@@ -59,6 +59,9 @@ dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor "org.projectlombok:lombok:1.18.10"
     compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
+    
+    //rest template
+    compile group: 'org.springframework', name: 'spring-web', version: '5.2.4.RELEASE'
 }
 
 
