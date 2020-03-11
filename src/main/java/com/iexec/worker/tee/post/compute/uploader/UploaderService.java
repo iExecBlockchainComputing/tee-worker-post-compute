@@ -12,6 +12,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
 
 @Slf4j
 public class UploaderService {
@@ -40,10 +44,12 @@ public class UploaderService {
 
 
     public static String uploadToIpfsWithIexecProxy(String taskId, String baseUrl, String token, String fileToUploadPath) {
-        byte[] fileToUpload = FileHelper.readFileBytes(fileToUploadPath);
+        byte[] fileToUpload;
 
-        if (fileToUpload == null) {
-            log.error("Can't uploadToIpfsWithIexecProxy (missing filePath to upload)");
+        try {
+            fileToUpload = Files.readAllBytes(Paths.get(fileToUploadPath));
+        } catch (IOException e) {
+            log.error("Can't uploadToIpfsWithIexecProxy (missing filePath to upload) [taskId:{}, fileToUploadPath:{}]", taskId, fileToUploadPath);
             return "";
         }
 

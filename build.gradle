@@ -62,6 +62,7 @@ dependencies {
     
     //rest template
     compile group: 'org.springframework', name: 'spring-web', version: '5.2.4.RELEASE'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 }
 
 
