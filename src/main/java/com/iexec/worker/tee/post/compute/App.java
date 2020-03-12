@@ -28,6 +28,7 @@ public class App {
     private static final String WORKER_ADDRESS = "WORKER_ADDRESS";
     private static final String IEXEC_REQUESTER_RESULT_ENCRYPTION = "IEXEC_REQUESTER_RESULT_ENCRYPTION";
     private static final String IEXEC_REQUESTER_STORAGE_LOCATION = "IEXEC_REQUESTER_STORAGE_LOCATION";
+    private static final String IEXEC_REQUESTER_STORAGE_PROXY = "IEXEC_REQUESTER_STORAGE_PROXY";
     private static final String BENEFICIARY_PUBLIC_KEY_BASE64 = "BENEFICIARY_PUBLIC_KEY_BASE64";
     private static final String REQUESTER_STORAGE_TOKEN = "REQUESTER_STORAGE_TOKEN";
     private static final String TEE_CHALLENGE_PRIVATE_KEY = "TEE_CHALLENGE_PRIVATE_KEY";
@@ -92,6 +93,7 @@ public class App {
     private static String uploadResult(String taskId, String fileToUploadPath) {
         log.info("Upload stage started");
         String storageLocation = EnvUtils.getEnvVar(IEXEC_REQUESTER_STORAGE_LOCATION);
+        String storageProxy = EnvUtils.getEnvVar(IEXEC_REQUESTER_STORAGE_PROXY);
         String storageToken = EnvUtils.getEnvVarOrExit(REQUESTER_STORAGE_TOKEN);
 
         String resultLink = "";
@@ -104,8 +106,8 @@ public class App {
             case IPFS_STORAGE:
             default:
                 log.info("Upload stage mode: IPFS_STORAGE");
-                String baseUrl = "http://core:18090/results";//TODO 1 change this & 2 use ssl
-                resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, baseUrl, storageToken, fileToUploadPath);
+                //String baseUrl = "http://core:18090/results";
+                resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
                 break;
         }
         if (resultLink.isEmpty()) {
