@@ -22,9 +22,9 @@ public class SignerService {
     // TODO: put this in iexec-common and use it also in the worker
     private static final String ENCLAVE_SIG_DOT_IEXEC = "/iexec_out/enclaveSig.iexec";
 
-    public static boolean signEnclaveChallengeAndWriteSignature(String uploadedResultFilePath, String enclaveChallengePrivateKey,
+    public static boolean signEnclaveChallengeAndWriteSignature(String resultToUpload, String enclaveChallengePrivateKey,
                                                                 String taskId, String workerAddress) {
-        String resultDigest = SignerService.getResultDigestOfFile(uploadedResultFilePath); //TODO: change that to uploaded.iexec file?
+        String resultDigest = SignerService.getResultDigestOfFile(resultToUpload); //TODO: change that to uploaded.iexec file?
 
         TeeEnclaveChallengeSignature enclaveChallengeSignature =
                 generateTeeEnclaveChallengeSignature(enclaveChallengePrivateKey, taskId, workerAddress, resultDigest);

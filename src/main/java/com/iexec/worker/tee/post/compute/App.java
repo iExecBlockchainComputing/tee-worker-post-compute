@@ -17,6 +17,7 @@ import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.ENCR
 import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.NO_ENCRYPTION;
 import static com.iexec.worker.tee.post.compute.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.DROPBOX_STORAGE;
+import static com.iexec.worker.tee.post.compute.uploader.UploaderService.IPFS_STORAGE;
 import static com.iexec.worker.tee.post.compute.utils.FilesUtils.IEXEC_OUT_PATH;
 
 @Slf4j
@@ -27,8 +28,9 @@ public class App {
     private static final String WORKER_ADDRESS = "WORKER_ADDRESS";
     private static final String IEXEC_REQUESTER_RESULT_ENCRYPTION = "IEXEC_REQUESTER_RESULT_ENCRYPTION";
     private static final String IEXEC_REQUESTER_STORAGE_LOCATION = "IEXEC_REQUESTER_STORAGE_LOCATION";
+    private static final String IEXEC_REQUESTER_STORAGE_PROXY = "IEXEC_REQUESTER_STORAGE_PROXY";
     private static final String BENEFICIARY_PUBLIC_KEY_BASE64 = "BENEFICIARY_PUBLIC_KEY_BASE64";
-    private static final String REQUESTER_DROPBOX_TOKEN = "DROPBOX_ACCESS_TOKEN";
+    private static final String REQUESTER_STORAGE_TOKEN = "REQUESTER_STORAGE_TOKEN";
     private static final String TEE_CHALLENGE_PRIVATE_KEY = "TEE_CHALLENGE_PRIVATE_KEY";
 
     public static void main(String[] args) {
@@ -39,7 +41,9 @@ public class App {
 
         String resultPath = prepareResult(IEXEC_OUT_PATH);
         String resultToUpload = eventuallyEncryptResult(resultPath);
-        uploadResult(taskId, resultToUpload);
+        System.out.println(resultToUpload);
+        String resultLink = uploadResult(taskId, resultToUpload);
+        System.out.println(resultLink);
         signResult(taskId, resultToUpload);
 
         log.info("Tee worker post-compute completed!");
@@ -87,33 +91,41 @@ public class App {
         return fileToUpload;
     }
 
-    private static void uploadResult(String taskId, String fileToUploadPath) {
+    private static String uploadResult(String taskId, String fileToUploadPath) {
         log.info("Upload stage started");
         String storageLocation = EnvUtils.getEnvVar(IEXEC_REQUESTER_STORAGE_LOCATION);
+        String storageProxy = EnvUtils.getEnvVar(IEXEC_REQUESTER_STORAGE_PROXY);
+        String storageToken = EnvUtils.getEnvVarOrExit(REQUESTER_STORAGE_TOKEN);
 
-        boolean isUploaded;
+        String resultLink = "";
         switch (storageLocation) {
             case DROPBOX_STORAGE:
-            default:
                 log.info("Upload stage mode: DROPBOX_STORAGE");
-                String dropboxAccessToken = EnvUtils.getEnvVarOrExit(REQUESTER_DROPBOX_TOKEN);
                 String remoteFilename = taskId + ".zip";
-                isUploaded = UploaderService.uploadToDropBox(fileToUploadPath, dropboxAccessToken, remoteFilename);
+                resultLink = UploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFilename);
+                break;
+            case IPFS_STORAGE:
+            default:
+                log.info("Upload stage mode: IPFS_STORAGE");
+                //String baseUrl = "http://core:18090/results";
+                resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
                 break;
         }
-        if (!isUploaded) {
+        if (resultLink.isEmpty()) {
             log.error("Upload stage failed");
             exit();
-        } else {
-            log.info("Upload stage completed");
         }
+
+        log.info("Upload stage completed");
+        return resultLink;
     }
 
-    private static void signResult(String taskId, String fileToUploadPath) {
+    //TODO Add result link to signature (uploaded.iexec?)
+    private static void signResult(String taskId, String resultToUpload) {
         log.info("Signing stage started");
         String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit(TEE_CHALLENGE_PRIVATE_KEY);
         String workerAddress = EnvUtils.getEnvVarOrExit(WORKER_ADDRESS);
-        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(fileToUploadPath, teeChallengePrivateKey, taskId, workerAddress);
+        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(resultToUpload, teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
             log.error("Signing stage failed");
             exit();
