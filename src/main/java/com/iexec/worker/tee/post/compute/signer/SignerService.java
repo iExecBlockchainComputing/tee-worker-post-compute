@@ -22,10 +22,8 @@ public class SignerService {
     // TODO: put this in iexec-common and use it also in the worker
     private static final String ENCLAVE_SIG_DOT_IEXEC = "/iexec_out/enclaveSig.iexec";
 
-    public static boolean signEnclaveChallengeAndWriteSignature(String resultToUpload, String enclaveChallengePrivateKey,
+    public static boolean signEnclaveChallengeAndWriteSignature(String resultDigest, String enclaveChallengePrivateKey,
                                                                 String taskId, String workerAddress) {
-        String resultDigest = SignerService.getResultDigestOfFile(resultToUpload); //TODO: change that to uploaded.iexec file?
-
         TeeEnclaveChallengeSignature enclaveChallengeSignature =
                 generateTeeEnclaveChallengeSignature(enclaveChallengePrivateKey, taskId, workerAddress, resultDigest);
         if (enclaveChallengeSignature == null) {
@@ -90,14 +88,6 @@ public class SignerService {
     }
 
 
-    private static String getResultDigestOfFile(String filePath) {
-        byte[] content = new byte[0];
-        try {
-            content = Files.readAllBytes(Paths.get(filePath));
-        } catch (IOException e) {
-            log.info("Failed to getResultDigestOfFile");
-        }
-        return bytesToString(Hash.sha256(content));
-    }
+
 
 }

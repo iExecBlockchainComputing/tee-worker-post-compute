@@ -8,17 +8,24 @@ import com.iexec.worker.tee.post.compute.uploader.UploaderService;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import com.iexec.worker.tee.post.compute.utils.FilesUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.web3j.crypto.Hash;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Base64;
 
+import static com.iexec.common.utils.BytesUtils.bytesToString;
 import static com.iexec.common.utils.FileHelper.zipFolder;
+import static com.iexec.common.worker.result.ResultUtils.getCallbackDataFromPath;
 import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.ENCRYPTION_REQUESTED;
 import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.NO_ENCRYPTION;
 import static com.iexec.worker.tee.post.compute.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.DROPBOX_STORAGE;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.IPFS_STORAGE;
-import static com.iexec.worker.tee.post.compute.utils.FilesUtils.IEXEC_OUT_PATH;
+import static com.iexec.worker.tee.post.compute.utils.FilesUtils.*;
 
 @Slf4j
 public class App {
@@ -31,6 +38,7 @@ public class App {
     private static final String IEXEC_REQUESTER_STORAGE_PROXY = "IEXEC_REQUESTER_STORAGE_PROXY";
     private static final String BENEFICIARY_PUBLIC_KEY_BASE64 = "BENEFICIARY_PUBLIC_KEY_BASE64";
     private static final String REQUESTER_STORAGE_TOKEN = "REQUESTER_STORAGE_TOKEN";
+    private static final String IEXEC_REQUESTER_SHOULD_CALLBACK = "IEXEC_REQUESTER_SHOULD_CALLBACK";
     private static final String TEE_CHALLENGE_PRIVATE_KEY = "TEE_CHALLENGE_PRIVATE_KEY";
 
     public static void main(String[] args) {
@@ -39,17 +47,45 @@ public class App {
 
         log.info("DEBUG - env: " + System.getenv().toString());
 
-        String resultPath = prepareResult(IEXEC_OUT_PATH);
-        String resultToUpload = eventuallyEncryptResult(resultPath);
-        System.out.println(resultToUpload);
-        String resultLink = uploadResult(taskId, resultToUpload);
-        System.out.println(resultLink);
-        signResult(taskId, resultToUpload);
+        String resultDigest;
+
+        if (shouldCallback()) {
+            resultDigest = getCallbackDigest(PROTECTED_IEXEC_OUT + CALLBACK_FILE);
+        } else {
+            String iexecOutZipPath = zipIexecOut(PROTECTED_IEXEC_OUT);
+            String resultPath = eventuallyEncryptResult(iexecOutZipPath);
+            String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
+            resultDigest = getIexecOutZipDigest(resultPath);
+        }
+        signResult(taskId, resultDigest);
 
         log.info("Tee worker post-compute completed!");
     }
 
-    private static String prepareResult(String iexecOutPath) {
+    private static boolean shouldCallback() {
+        return EnvUtils.getEnvVar(IEXEC_REQUESTER_SHOULD_CALLBACK).equals("yes");
+    }
+
+    private static String getCallbackDigest(String resultPath) {
+        log.info("Callback stage started");
+
+        String resultDigest = getCallbackDataFromPath(resultPath);
+        if (resultDigest.isEmpty()) {
+            log.error("Callback stage failed");
+            exit();
+        }
+
+        boolean isCallbackCopied = copyCallbackToUnprotected();
+        if (!isCallbackCopied) {
+            log.error("Callback stage failed");
+            exit();
+        }
+
+        log.info("Callback stage completed");
+        return resultDigest;
+    }
+
+    private static String zipIexecOut(String iexecOutPath) {
         if (!FilesUtils.isCompletedComputeFilePresent()) {
             log.error("Preparation stage failed (isCompletedComputeFilePresent)");
             exit();
@@ -107,7 +143,6 @@ public class App {
             case IPFS_STORAGE:
             default:
                 log.info("Upload stage mode: IPFS_STORAGE");
-                //String baseUrl = "http://core:18090/results";
                 resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
                 break;
         }
@@ -120,12 +155,14 @@ public class App {
         return resultLink;
     }
 
-    //TODO Add result link to signature (uploaded.iexec?)
-    private static void signResult(String taskId, String resultToUpload) {
+    //TODO Add result link to signature ?
+    private static void signResult(String taskId, String resultDigest) {
         log.info("Signing stage started");
         String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit(TEE_CHALLENGE_PRIVATE_KEY);
         String workerAddress = EnvUtils.getEnvVarOrExit(WORKER_ADDRESS);
-        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(resultToUpload, teeChallengePrivateKey, taskId, workerAddress);
+
+
+        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(resultDigest, teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
             log.error("Signing stage failed");
             exit();
@@ -134,9 +171,44 @@ public class App {
         }
     }
 
+    /*
+     * Let's leak callback file for core finalize
+     * */
+    private static boolean copyCallbackToUnprotected() {
+        try {
+            FileUtils.copyFile(
+                    new File(PROTECTED_IEXEC_OUT + CALLBACK_FILE),
+                    new File(UNPROTECTED_IEXEC_OUT + CALLBACK_FILE)
+            );
+            return true;
+        } catch (IOException e) {
+            log.error("CopyCallbackToUnprotected failed");
+            exit();
+        }
+
+        return false;
+    }
+
+    /*
+    * TODO 1
+    * Use worker method moved to common
+    * TODO 2
+    * Enable non-deterministic app for trust > 0 with :
+    * if (determinismFilePath.toFile().exists()) { return getHashFromDeterminismIexecFile(determinismFilePath); }
+    */
+    public static String getIexecOutZipDigest(String zipPath) {
+        byte[] content = new byte[0];
+        try {
+            content = Files.readAllBytes(Paths.get(zipPath));
+        } catch (IOException e) {
+            log.info("Failed to getIexecOutZipDigest");
+        }
+
+        return bytesToString(Hash.sha256(content));
+    }
+
     private static void exit() {
         System.exit(1);
     }
-
 
 }
