@@ -6,21 +6,17 @@ import com.iexec.common.tee.TeeEnclaveChallengeSignature;
 import com.iexec.common.utils.CredentialsUtils;
 import com.iexec.common.utils.HashUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.web3j.crypto.Hash;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static com.iexec.common.utils.BytesUtils.bytesToString;
 import static com.iexec.common.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignature;
+import static com.iexec.worker.tee.post.compute.utils.FilesUtils.*;
 
 @Slf4j
 public class SignerService {
-
-    // TODO: put this in iexec-common and use it also in the worker
-    private static final String ENCLAVE_SIG_DOT_IEXEC = "/iexec_out/enclaveSig.iexec";
 
     public static boolean signEnclaveChallengeAndWriteSignature(String resultDigest, String enclaveChallengePrivateKey,
                                                                 String taskId, String workerAddress) {
@@ -37,7 +33,8 @@ public class SignerService {
             return false;
         }
 
-        boolean isSignatureFileCreated = writeTeeEnclaveChallengeSignatureFile(enclaveChallengeSignature, ENCLAVE_SIG_DOT_IEXEC);
+        boolean isSignatureFileCreated = writeTeeEnclaveChallengeSignatureFile(enclaveChallengeSignature,
+                UNPROTECTED_IEXEC_OUT + SLASH_ENCLAVE_SIG_FILE);
         if (!isSignatureFileCreated) {
             System.err.println("Failed to write TeeEnclaveChallenge signature (exiting)");
             return false;
@@ -86,8 +83,6 @@ public class SignerService {
         }
         return false;
     }
-
-
 
 
 }
