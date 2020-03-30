@@ -13,25 +13,17 @@ import java.io.File;
 import java.util.Base64;
 
 import static com.iexec.common.utils.FileHelper.zipFolder;
+import static com.iexec.common.worker.result.ResultUtils.getCallbackDataFromPath;
 import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.ENCRYPTION_REQUESTED;
 import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.NO_ENCRYPTION;
 import static com.iexec.worker.tee.post.compute.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.DROPBOX_STORAGE;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.IPFS_STORAGE;
-import static com.iexec.worker.tee.post.compute.utils.FilesUtils.IEXEC_OUT_PATH;
+import static com.iexec.worker.tee.post.compute.utils.EnvUtils.*;
+import static com.iexec.worker.tee.post.compute.utils.FilesUtils.*;
 
 @Slf4j
 public class App {
-
-    //TODO: move these fields to common
-    private static final String TASK_ID = "TASK_ID";
-    private static final String WORKER_ADDRESS = "WORKER_ADDRESS";
-    private static final String IEXEC_REQUESTER_RESULT_ENCRYPTION = "IEXEC_REQUESTER_RESULT_ENCRYPTION";
-    private static final String IEXEC_REQUESTER_STORAGE_LOCATION = "IEXEC_REQUESTER_STORAGE_LOCATION";
-    private static final String IEXEC_REQUESTER_STORAGE_PROXY = "IEXEC_REQUESTER_STORAGE_PROXY";
-    private static final String BENEFICIARY_PUBLIC_KEY_BASE64 = "BENEFICIARY_PUBLIC_KEY_BASE64";
-    private static final String REQUESTER_STORAGE_TOKEN = "REQUESTER_STORAGE_TOKEN";
-    private static final String TEE_CHALLENGE_PRIVATE_KEY = "TEE_CHALLENGE_PRIVATE_KEY";
 
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
@@ -39,17 +31,41 @@ public class App {
 
         log.info("DEBUG - env: " + System.getenv().toString());
 
-        String resultPath = prepareResult(IEXEC_OUT_PATH);
-        String resultToUpload = eventuallyEncryptResult(resultPath);
-        System.out.println(resultToUpload);
-        String resultLink = uploadResult(taskId, resultToUpload);
-        System.out.println(resultLink);
-        signResult(taskId, resultToUpload);
+        String resultDigest;
+
+        if (shouldCallback()) {
+            resultDigest = getCallbackDigest(PROTECTED_IEXEC_OUT + SLASH_CALLBACK_FILE);
+        } else {
+            String iexecOutZipPath = zipIexecOut(PROTECTED_IEXEC_OUT);
+            String resultPath = eventuallyEncryptResult(iexecOutZipPath);
+            String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
+            resultDigest = getIexecOutZipDigest(resultPath);
+        }
+        signResult(taskId, resultDigest);
 
         log.info("Tee worker post-compute completed!");
     }
 
-    private static String prepareResult(String iexecOutPath) {
+    private static String getCallbackDigest(String resultPath) {
+        log.info("Callback stage started");
+
+        String resultDigest = getCallbackDataFromPath(resultPath);
+        if (resultDigest.isEmpty()) {
+            log.error("Callback stage failed (empty resultDigest)");
+            exit();
+        }
+
+        boolean isCallbackCopied = copyCallbackToUnprotected();
+        if (!isCallbackCopied) {
+            log.error("Callback stage failed (callback copy failed)");
+            exit();
+        }
+
+        log.info("Callback stage completed");
+        return resultDigest;
+    }
+
+    private static String zipIexecOut(String iexecOutPath) {
         if (!FilesUtils.isCompletedComputeFilePresent()) {
             log.error("Preparation stage failed (isCompletedComputeFilePresent)");
             exit();
@@ -107,7 +123,6 @@ public class App {
             case IPFS_STORAGE:
             default:
                 log.info("Upload stage mode: IPFS_STORAGE");
-                //String baseUrl = "http://core:18090/results";
                 resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
                 break;
         }
@@ -120,12 +135,14 @@ public class App {
         return resultLink;
     }
 
-    //TODO Add result link to signature (uploaded.iexec?)
-    private static void signResult(String taskId, String resultToUpload) {
+    //TODO Add result link to signature ?
+    private static void signResult(String taskId, String resultDigest) {
         log.info("Signing stage started");
         String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit(TEE_CHALLENGE_PRIVATE_KEY);
         String workerAddress = EnvUtils.getEnvVarOrExit(WORKER_ADDRESS);
-        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(resultToUpload, teeChallengePrivateKey, taskId, workerAddress);
+
+
+        boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(resultDigest, teeChallengePrivateKey, taskId, workerAddress);
         if (!isSignatureFileCreated) {
             log.error("Signing stage failed");
             exit();
@@ -137,6 +154,5 @@ public class App {
     private static void exit() {
         System.exit(1);
     }
-
 
 }
