@@ -12,14 +12,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.Base64;
 
+import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.utils.FileHelper.zipFolder;
-import static com.iexec.common.worker.result.ResultUtils.getCallbackDataFromPath;
+import static com.iexec.common.worker.result.ResultUtils.*;
 import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.ENCRYPTION_REQUESTED;
 import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.NO_ENCRYPTION;
 import static com.iexec.worker.tee.post.compute.signer.SignerService.signEnclaveChallengeAndWriteSignature;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.DROPBOX_STORAGE;
 import static com.iexec.worker.tee.post.compute.uploader.UploaderService.IPFS_STORAGE;
-import static com.iexec.worker.tee.post.compute.utils.EnvUtils.*;
 import static com.iexec.worker.tee.post.compute.utils.FilesUtils.*;
 
 @Slf4j
@@ -27,13 +27,14 @@ public class App {
 
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
-        String taskId = EnvUtils.getEnvVarOrExit(TASK_ID);
+        String taskId = EnvUtils.getEnvVarOrExit(RESULT_TASK_ID);
 
         log.info("DEBUG - env: " + System.getenv().toString());
 
         String resultDigest;
+        boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
 
-        if (shouldCallback()) {
+        if (shouldCallback) {
             resultDigest = getCallbackDigest(PROTECTED_IEXEC_OUT + SLASH_CALLBACK_FILE);
         } else {
             String iexecOutZipPath = zipIexecOut(PROTECTED_IEXEC_OUT);
@@ -82,7 +83,7 @@ public class App {
     private static String eventuallyEncryptResult(String inDataFilePath) {
         log.info("Encryption stage started");
         String fileToUpload;
-        String resultEncryptionMode = EnvUtils.getEnvVar(IEXEC_REQUESTER_RESULT_ENCRYPTION);
+        String resultEncryptionMode = EnvUtils.getEnvVar(RESULT_ENCRYPTION);
 
         // TODO: use true/false instead of encryptionMode (since we have only two options)
         switch (resultEncryptionMode) {
@@ -93,7 +94,7 @@ public class App {
             case ENCRYPTION_REQUESTED:
             default:
                 log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
-                String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit(BENEFICIARY_PUBLIC_KEY_BASE64);
+                String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit(RESULT_ENCRYPTION_PUBLIC_KEY);
                 String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
                 fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
                 break;
@@ -109,12 +110,12 @@ public class App {
 
     private static String uploadResult(String taskId, String fileToUploadPath) {
         log.info("Upload stage started");
-        String storageLocation = EnvUtils.getEnvVar(IEXEC_REQUESTER_STORAGE_LOCATION);
-        String storageProxy = EnvUtils.getEnvVar(IEXEC_REQUESTER_STORAGE_PROXY);
-        String storageToken = EnvUtils.getEnvVarOrExit(REQUESTER_STORAGE_TOKEN);
+        String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
+        String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
+        String storageToken = EnvUtils.getEnvVarOrExit(RESULT_STORAGE_TOKEN);
 
         String resultLink = "";
-        switch (storageLocation) {
+        switch (storageProvider) {
             case DROPBOX_STORAGE:
                 log.info("Upload stage mode: DROPBOX_STORAGE");
                 String remoteFilename = taskId + ".zip";
@@ -138,8 +139,8 @@ public class App {
     //TODO Add result link to signature ?
     private static void signResult(String taskId, String resultDigest) {
         log.info("Signing stage started");
-        String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit(TEE_CHALLENGE_PRIVATE_KEY);
-        String workerAddress = EnvUtils.getEnvVarOrExit(WORKER_ADDRESS);
+        String teeChallengePrivateKey = EnvUtils.getEnvVarOrExit(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY);
+        String workerAddress = EnvUtils.getEnvVarOrExit(RESULT_SIGN_WORKER_ADDRESS);
 
 
         boolean isSignatureFileCreated = signEnclaveChallengeAndWriteSignature(resultDigest, teeChallengePrivateKey, taskId, workerAddress);
