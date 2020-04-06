@@ -5,7 +5,6 @@ import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.users.FullAccount;
 import com.iexec.common.result.ResultModel;
-import com.iexec.common.utils.FileHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,13 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 @Slf4j
 public class UploaderService {
-
-    public static final String DROPBOX_STORAGE = "dropbox";
-    public static final String IPFS_STORAGE = "ipfs";
 
     public static String uploadToDropBox(String localFilePath, String dropboxAccessToken, String remoteFilename) {
         //TODO check new File(localFilePath) not null

@@ -12,14 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.Base64;
 
+import static com.iexec.common.chain.DealParams.DROPBOX_RESULT_STORAGE_PROVIDER;
+import static com.iexec.common.chain.DealParams.IPFS_RESULT_STORAGE_PROVIDER;
 import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.utils.FileHelper.zipFolder;
 import static com.iexec.common.worker.result.ResultUtils.*;
-import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.ENCRYPTION_REQUESTED;
-import static com.iexec.worker.tee.post.compute.encrypter.EncryptionService.NO_ENCRYPTION;
 import static com.iexec.worker.tee.post.compute.signer.SignerService.signEnclaveChallengeAndWriteSignature;
-import static com.iexec.worker.tee.post.compute.uploader.UploaderService.DROPBOX_STORAGE;
-import static com.iexec.worker.tee.post.compute.uploader.UploaderService.IPFS_STORAGE;
 import static com.iexec.worker.tee.post.compute.utils.FilesUtils.*;
 
 @Slf4j
@@ -83,22 +81,18 @@ public class App {
     private static String eventuallyEncryptResult(String inDataFilePath) {
         log.info("Encryption stage started");
         String fileToUpload;
-        String resultEncryptionMode = EnvUtils.getEnvVar(RESULT_ENCRYPTION);
+        boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
 
-        // TODO: use true/false instead of encryptionMode (since we have only two options)
-        switch (resultEncryptionMode) {
-            case NO_ENCRYPTION:
-                log.info("Encryption stage mode: NO_ENCRYPTION");
-                fileToUpload = inDataFilePath;
-                break;
-            case ENCRYPTION_REQUESTED:
-            default:
-                log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
-                String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit(RESULT_ENCRYPTION_PUBLIC_KEY);
-                String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
-                fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
-                break;
+        if (!shouldEncrypt) {
+            log.info("Encryption stage mode: NO_ENCRYPTION");
+            fileToUpload = inDataFilePath;
+        } else {
+            log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
+            String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit(RESULT_ENCRYPTION_PUBLIC_KEY);
+            String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
+            fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
         }
+
         if (fileToUpload.isEmpty()) {
             log.error("Encryption stage failed");
             exit();
@@ -116,12 +110,12 @@ public class App {
 
         String resultLink = "";
         switch (storageProvider) {
-            case DROPBOX_STORAGE:
+            case DROPBOX_RESULT_STORAGE_PROVIDER:
                 log.info("Upload stage mode: DROPBOX_STORAGE");
                 String remoteFilename = taskId + ".zip";
                 resultLink = UploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFilename);
                 break;
-            case IPFS_STORAGE:
+            case IPFS_RESULT_STORAGE_PROVIDER:
             default:
                 log.info("Upload stage mode: IPFS_STORAGE");
                 resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
