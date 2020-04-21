@@ -63,4 +63,22 @@ public class FilesUtils {
 
         return bytesToString(Hash.sha256(content));
     }
+
+    /*
+    * TODO
+    * 1 - Move to common
+    * 2 - Rename FileHelper.readFile --> FileHelper.readStringFile
+    * 3 - Remove FileHelper.readFileBytes ?
+    * */
+    public static byte[] readAllBytes(String filePath) {
+        try {
+            return Files.readAllBytes(Paths.get(filePath));
+        } catch (IOException e) {
+            log.error("Failed to readAllBytes [filePath:{}]", filePath);
+        }
+
+        return null;
+    }
+
+
 }
