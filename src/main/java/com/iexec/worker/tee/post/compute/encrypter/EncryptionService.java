@@ -43,7 +43,7 @@ public class EncryptionService {
      *
      * after
      * ├── encrypted-result-0xabc.zip
-     * └── clear-result-0xabc.zip
+     * └── plain-result-0xabc.zip
      *
      * Returns: clear data path (zip here)
      *
