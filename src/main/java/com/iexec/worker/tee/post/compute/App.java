@@ -8,9 +8,9 @@ import com.iexec.worker.tee.post.compute.uploader.UploaderService;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import com.iexec.worker.tee.post.compute.utils.FilesUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.web3j.crypto.Hash;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Base64;
 
 import static com.iexec.common.chain.DealParams.DROPBOX_RESULT_STORAGE_PROVIDER;
@@ -49,11 +49,12 @@ public class App {
     private static String getCallbackDigest(String resultPath) {
         log.info("Callback stage started");
 
-        String resultDigest = getCallbackDataFromPath(resultPath);
-        if (resultDigest.isEmpty()) {
-            log.error("Callback stage failed (empty resultDigest)");
+        String callbackData = getCallbackDataFromPath(resultPath);
+        if (callbackData.isEmpty()) {
+            log.error("Callback stage failed (empty callbackData)");
             exit();
         }
+        String resultDigest = Hash.sha3(callbackData);
 
         boolean isCallbackCopied = copyCallbackToUnprotected();
         if (!isCallbackCopied) {
