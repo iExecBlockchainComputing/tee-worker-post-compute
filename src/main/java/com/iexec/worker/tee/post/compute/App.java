@@ -25,6 +25,7 @@ public class App {
 
         ComputedFile computedFile = readComputedFile(taskId);
 
+
         buildResultDigestInComputedFile(computedFile, shouldCallback);
 
         if (!shouldCallback) {
