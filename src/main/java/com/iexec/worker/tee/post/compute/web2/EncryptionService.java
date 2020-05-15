@@ -1,4 +1,4 @@
-package com.iexec.worker.tee.post.compute.encrypter;
+package com.iexec.worker.tee.post.compute.web2;
 
 import com.iexec.common.security.EncryptionHelper;
 import lombok.extern.slf4j.Slf4j;

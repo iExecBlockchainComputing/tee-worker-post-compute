@@ -23,4 +23,8 @@ public class EnvUtils {
         }
         return envVar;
     }
+
+    public static void exit() {
+        System.exit(1);
+    }
 }
