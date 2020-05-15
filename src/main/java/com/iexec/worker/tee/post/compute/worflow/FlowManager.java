@@ -17,8 +17,7 @@ import java.nio.file.Paths;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
 import static com.iexec.worker.tee.post.compute.utils.EnvUtils.exit;
-import static com.iexec.worker.tee.post.compute.utils.FilesUtils.PROTECTED_IEXEC_OUT;
-import static com.iexec.worker.tee.post.compute.utils.FilesUtils.UNPROTECTED_IEXEC_OUT;
+import static com.iexec.worker.tee.post.compute.utils.FilesUtils.*;
 
 @Slf4j
 public class FlowManager {
@@ -93,7 +92,7 @@ public class FlowManager {
      * */
     public static void copyComputedFileToHost(ComputedFile computedFile) {
         log.info("CopyToHost stage started");
-        String outputFilePath = UNPROTECTED_IEXEC_OUT + "/computed.json";
+        String outputFilePath = UNPROTECTED_IEXEC_OUT + SLASH_COMPUTED_FILE;
 
         ObjectMapper mapper = new ObjectMapper();
         try {
