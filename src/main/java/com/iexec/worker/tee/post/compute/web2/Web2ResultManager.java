@@ -1,5 +1,7 @@
 package com.iexec.worker.tee.post.compute.web2;
 
+import com.iexec.common.utils.FileHelper;
+import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,30 +11,25 @@ import java.util.Base64;
 import static com.iexec.common.chain.DealParams.DROPBOX_RESULT_STORAGE_PROVIDER;
 import static com.iexec.common.chain.DealParams.IPFS_RESULT_STORAGE_PROVIDER;
 import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
-import static com.iexec.common.utils.FileHelper.zipFolder;
 import static com.iexec.common.worker.result.ResultUtils.*;
 import static com.iexec.worker.tee.post.compute.utils.EnvUtils.exit;
-import static com.iexec.worker.tee.post.compute.utils.FilesUtils.PROTECTED_IEXEC_OUT;
 
 @Slf4j
 public class Web2ResultManager {
 
+    public static final String SLASH_SCONE = File.separator + "scone";
     /*
      * Manager
      * */
     public static void encryptAndUploadResult(String taskId) {
-        String iexecOutZipPath = zipIexecOut(PROTECTED_IEXEC_OUT);
-        String resultPath = eventuallyEncryptResult(iexecOutZipPath);
-        String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
-    }
-
-    private static String zipIexecOut(String iexecOutPath) {
-        File iexecOutZip = zipFolder(iexecOutPath);
-        if (iexecOutZip == null) {
+        // save zip file to the protected region /scone
+        String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_SCONE);
+        if (iexecOutZipPath.isEmpty()) {
             log.error("zipIexecOut stage failed");
             exit();
         }
-        return iexecOutZip.getAbsolutePath();
+        String resultPath = eventuallyEncryptResult(iexecOutZipPath);
+        String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
     }
 
     private static String eventuallyEncryptResult(String inDataFilePath) {
