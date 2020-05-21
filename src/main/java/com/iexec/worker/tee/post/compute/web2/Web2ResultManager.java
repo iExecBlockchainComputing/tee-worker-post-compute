@@ -22,7 +22,7 @@ public class Web2ResultManager {
      * Manager
      * */
     public static void encryptAndUploadResult(String taskId) {
-        // save zip file to the protected region /scone
+        // save zip file to the protected region /scone (temporarily)
         String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_SCONE);
         if (iexecOutZipPath.isEmpty()) {
             log.error("zipIexecOut stage failed");
