@@ -11,6 +11,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.5/community" >> /etc/apk/repos
 COPY build/libs/tee-worker-post-compute-@projectversion@.jar /app/tee-worker-post-compute.jar
 COPY build/resources/main/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
+RUN mkdir /scone
 
 RUN which java
 
