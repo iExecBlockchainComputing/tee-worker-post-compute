@@ -3,6 +3,7 @@ package com.iexec.worker.tee.post.compute.worflow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.tee.TeeEnclaveChallengeSignature;
+import com.iexec.common.utils.FileHelper;
 import com.iexec.common.utils.HashUtils;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
@@ -10,6 +11,7 @@ import com.iexec.worker.tee.post.compute.signer.SignerService;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,7 +19,6 @@ import java.nio.file.Paths;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
 import static com.iexec.worker.tee.post.compute.utils.EnvUtils.exit;
-import static com.iexec.worker.tee.post.compute.utils.FilesUtils.*;
 
 @Slf4j
 public class FlowManager {
@@ -29,7 +30,7 @@ public class FlowManager {
     public static ComputedFile readComputedFile(String taskId) {
         log.info("ReadComputedFile stage started");
 
-        ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, PROTECTED_IEXEC_OUT);
+        ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, FileHelper.SLASH_IEXEC_OUT);
         if (computedFile == null) {
             log.error("ReadComputedFile failed (computed.json missing)");
             exit();
@@ -92,7 +93,7 @@ public class FlowManager {
      * */
     public static void copyComputedFileToHost(ComputedFile computedFile) {
         log.info("CopyToHost stage started");
-        String outputFilePath = UNPROTECTED_IEXEC_OUT + SLASH_COMPUTED_FILE;
+        String outputFilePath = FileHelper.SLASH_OUTPUT + File.separator + IexecFileHelper.COMPUTED_JSON;
 
         ObjectMapper mapper = new ObjectMapper();
         try {
