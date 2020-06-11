@@ -1,12 +1,4 @@
-FROM nexus.iex.ec/sconecuratedimages-iexec:openjdk11-alpine3.10-test
-#FROM sconecuratedimages/iexec:openjdk11-alpine3.10-test
-COPY --from=iexechub/sconecuratedimages-iexec:cli-alpine /opt/scone/scone-cli /opt/scone/scone-cli
-COPY --from=iexechub/sconecuratedimages-iexec:cli-alpine /usr/local/bin/scone /usr/local/bin/scone
-COPY --from=iexechub/sconecuratedimages-iexec:cli-alpine /opt/scone/bin /opt/scone/bin
-RUN apk add bash --no-cache
-
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.5/community" >> /etc/apk/repositories \
-    && apk update
+FROM sconecuratedimages/apps:openjdk-11-alpine-scone3.0
 
 COPY build/libs/tee-worker-post-compute-@projectversion@.jar /app/tee-worker-post-compute.jar
 COPY build/resources/main/entrypoint.sh /app/entrypoint.sh
