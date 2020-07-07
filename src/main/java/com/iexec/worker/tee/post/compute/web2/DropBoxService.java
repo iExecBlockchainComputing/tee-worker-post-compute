@@ -39,17 +39,15 @@ public class DropBoxService {
 
             log.info(metadata.toStringMultiline());
             return metadata.getPathDisplay();
-        } catch (DbxException ex) {
-            System.err.println("Error uploading to Dropbox " + ex.getMessage());
-        } catch (IOException ex) {
-            System.err.println("Error reading from file \"" + localFile + "\": " + ex.getMessage());
+        } catch (DbxException | IOException ex) {
+            log.error("Error uploading to Dropbox [error:{}]", ex.getMessage());
         }
         return "";
     }
 
 
     private static void printProgress(long uploaded, long size) {
-        System.out.printf("Uploaded %12d / %12d bytes (%5.2f%%)\n", uploaded, size, 100 * (uploaded / (double) size));
+        log.info("Uploaded {} /{} bytes ({}%)\n", uploaded, size, 100 * (uploaded / (double) size));
     }
 
 

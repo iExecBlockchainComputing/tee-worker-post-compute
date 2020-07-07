@@ -18,7 +18,6 @@ public class App {
 
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
-        log.info("DEBUG - env: " + System.getenv().toString());
 
         boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
         String taskId = EnvUtils.getEnvVarOrExit(RESULT_TASK_ID);
