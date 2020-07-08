@@ -34,7 +34,7 @@ public class UploaderService {
             log.info("Uploading file with token [localFile:{}, remoteFile:{}, isConnected:{}]",
                     localFilePath, remoteFilename, isConnected);
         } catch (DbxException e) {
-            log.error("Can't log to Dropbox with provided token (exiting)");
+            log.error("Can't upload to Dropbox with provided token (exiting)");
             System.exit(1);
         }
 
