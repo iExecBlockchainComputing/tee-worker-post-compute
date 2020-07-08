@@ -8,6 +8,7 @@ import com.iexec.common.result.ResultModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -19,18 +20,21 @@ import java.nio.file.Paths;
 public class UploaderService {
 
     public static String uploadToDropBox(String localFilePath, String dropboxAccessToken, String remoteFilename) {
-        //TODO check new File(localFilePath) not null
+        if (localFilePath == null || !new File(localFilePath).exists()){
+            log.error("Can't uploadToDropBox (localFile issue) (exiting)");
+            System.exit(1);
+        }
+
         DbxRequestConfig config = DbxRequestConfig.newBuilder("").build();
         DbxClientV2 client = new DbxClientV2(config, dropboxAccessToken);
 
-        FullAccount account;
         try {
-            account = client.users().getCurrentAccount();
-            String loginMessage = String.format("Uploading file with token [localFile:%s, remoteFile:%s, tokenOwner:%s(%s)]",
-                    localFilePath, remoteFilename, account.getEmail(), account.getName().getDisplayName());
-            log.info(loginMessage);
+            String accountId = client.users().getCurrentAccount().getAccountId();
+            boolean isConnected = accountId != null && !accountId.isEmpty();
+            log.info("Uploading file with token [localFile:{}, remoteFile:{}, isConnected:{}]",
+                    localFilePath, remoteFilename, isConnected);
         } catch (DbxException e) {
-            System.err.println("Can't log to Dropbox with provided token (exiting)");
+            log.error("Can't upload to Dropbox with provided token (exiting)");
             System.exit(1);
         }
 
@@ -59,12 +63,14 @@ public class UploaderService {
 
         HttpEntity<ResultModel> request = new HttpEntity<>(resultModel, headers);
 
-        String response = new RestTemplate().postForObject(baseUrl, request, String.class);
+        ResponseEntity<String> response = new RestTemplate().postForEntity(baseUrl, request, String.class);
 
-        if (response != null && !response.isEmpty()) {
-            return response;
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return response.getBody();
         }
 
+        log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}, status:{}]",
+                taskId, response.getStatusCode());
         return "";
 
     }
