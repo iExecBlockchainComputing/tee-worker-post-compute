@@ -1,13 +1,16 @@
 # tee-worker-post-compute
-tee-worker-post-compute component enabling trusted: 
 
-* 1 - result encryption
-* 2 - result upload
-* 3 - execution sign
+What is it?
 
+The TEE Worker Post-Compute component starts right after the execution of an iExec developer's TEE application.
+It replaces a sensible part of the standard iExec Worker which needs to be trusted and confidential.
 
-`gradle clean build && java -jar  \
-             -DLOCAL_FILE_PATH="/home/james/bla/0x1.zip" \
-             -DREMOTE_FILENAME="0x1.zip" \
-             -DACCESS_TOKEN="xxx" \
-             build/libs/tee-worker-post-compute.jar`
+This component is an application running inside a trusted enclave which will:
+
+1. Encrypt the result
+
+2. Upload the result
+  a. For cloud computing: it uploads the result of the task to IPFS or Dropbox
+  b. For off-chain computing: it prepares a valid callback for the future worker on-chain contribution
+
+3. Sign the result of the computation for the future worker contribution
