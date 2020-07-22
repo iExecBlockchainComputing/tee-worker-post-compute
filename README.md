@@ -11,6 +11,6 @@ This component is an application running inside a trusted enclave which will:
 
 2. Upload the result
   a. For cloud computing: it uploads the result of the task to IPFS or Dropbox
-  b. For off-chain computing: it prepares a valid callback for the future worker on-chain contribution
+  b. For off-chain computing: it prepares a valid callback for the worker's on-chain contribution
 
 3. Sign the result of the computation for the future worker contribution
