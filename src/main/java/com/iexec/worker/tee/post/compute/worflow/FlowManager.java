@@ -20,6 +20,8 @@ import static com.iexec.worker.tee.post.compute.utils.EnvUtils.exit;
 @Slf4j
 public class FlowManager {
 
+    public static final String WORKER_HOST = "worker:13100";
+
     /*
      * 1 - readComputedFile
      *
@@ -92,19 +94,19 @@ public class FlowManager {
      * - iexec-worker within network should be accessible on `worker:13100` (domain_name:port)
      * */
     public static void sendComputedFileToHost(ComputedFile computedFile) {
-        log.info("sendComputedFile stage started [computedFile:{}]", computedFile);
+        log.info("Send ComputedFile stage started [computedFile:{}]", computedFile);
         HttpEntity<ComputedFile> request = new HttpEntity<>(computedFile);
-        String baseUrl = String.format("http://worker:13100/iexec_out/%s/computed",
-                computedFile.getTaskId());
+        String baseUrl = String.format("http://%s/iexec_out/%s/computed",
+                WORKER_HOST, computedFile.getTaskId());
         ResponseEntity<String> response = new RestTemplate()
                 .postForEntity(baseUrl, request, String.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            log.error("sendComputedFile stage failed [taskId:{}, status:{}]",
+            log.error("Send ComputedFile stage failed [taskId:{}, status:{}]",
                     computedFile.getTaskId(), response.getStatusCode());
             exit();
         }
-        log.info("sendComputedFile stage completed");
+        log.info("Send ComputedFile stage completed");
     }
 
 }
