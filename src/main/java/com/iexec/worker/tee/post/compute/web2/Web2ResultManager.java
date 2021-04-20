@@ -17,13 +17,13 @@ import static com.iexec.worker.tee.post.compute.utils.EnvUtils.exit;
 @Slf4j
 public class Web2ResultManager {
 
-    public static final String SLASH_SCONE = File.separator + "scone";
+    public static final String SLASH_POST_COMPUTE_TMP = File.separator + "post-compute-tmp";
     /*
      * Manager
      * */
     public static void encryptAndUploadResult(String taskId) {
-        // save zip file to the protected region /scone (temporarily)
-        String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_SCONE);
+        // save zip file to the protected region /post-compute-tmp (temporarily)
+        String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_POST_COMPUTE_TMP);
         if (iexecOutZipPath.isEmpty()) {
             log.error("zipIexecOut stage failed");
             exit();

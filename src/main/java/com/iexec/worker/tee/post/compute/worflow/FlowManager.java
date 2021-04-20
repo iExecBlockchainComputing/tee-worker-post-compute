@@ -1,6 +1,5 @@
 package com.iexec.worker.tee.post.compute.worflow;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.tee.TeeEnclaveChallengeSignature;
 import com.iexec.common.utils.FileHelper;
@@ -10,11 +9,9 @@ import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.tee.post.compute.signer.SignerService;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
@@ -22,6 +19,8 @@ import static com.iexec.worker.tee.post.compute.utils.EnvUtils.exit;
 
 @Slf4j
 public class FlowManager {
+
+    public static final String WORKER_HOST = "worker:13100";
 
     /*
      * 1 - readComputedFile
@@ -88,23 +87,36 @@ public class FlowManager {
     }
 
     /*
-     * 4 - copyComputedFileToHost
-     * Let's make ComputedFile available for worker contribute/reveal & core finalize
+     * 4 - sendComputedFileToHost
+     *
+     * Let's make the ComputedFile available for worker contribute/reveal & core
+     * finalize.
+     * At this time, for security purposes, a Java enclave must be bundled inside
+     * a Scone BinaryFS. With BinaryFS, only Scone volumes (defined in palaemon
+     * session) can be shared from one component to another. Untrusted volumes
+     * cannot be shared to the host.
+     * To solve this, the untrusted volume (here the computed file) is transferred
+     * to the host over HTTP.
+     * In order to have the feature working, following conditions are required:
+     * - iexec-worker and tee-worker-post-compute containers must be in the
+     *   same network
+     * - iexec-worker within network should be accessible on `worker:13100`
+     *   (domain_name:port)
      * */
-    public static void copyComputedFileToHost(ComputedFile computedFile) {
-        log.info("CopyToHost stage started");
-        String outputFilePath = FileHelper.SLASH_OUTPUT + File.separator + IexecFileHelper.COMPUTED_JSON;
+    public static void sendComputedFileToHost(ComputedFile computedFile) {
+        log.info("Send ComputedFile stage started [computedFile:{}]", computedFile);
+        HttpEntity<ComputedFile> request = new HttpEntity<>(computedFile);
+        String baseUrl = String.format("http://%s/iexec_out/%s/computed",
+                WORKER_HOST, computedFile.getTaskId());
+        ResponseEntity<String> response = new RestTemplate()
+                .postForEntity(baseUrl, request, String.class);
 
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String json = mapper.writeValueAsString(computedFile);
-            log.info(json);
-            Files.write(Paths.get(outputFilePath), json.getBytes());
-        } catch (IOException e) {
-            log.error("CopyToHost stage failed (computed.json copy failed)");
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("Send ComputedFile stage failed [taskId:{}, status:{}]",
+                    computedFile.getTaskId(), response.getStatusCode());
             exit();
         }
-        log.info("CopyToHost stage completed");
+        log.info("Send ComputedFile stage completed");
     }
 
 }

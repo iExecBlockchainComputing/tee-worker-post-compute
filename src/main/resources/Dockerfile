@@ -1,9 +1,9 @@
-FROM sconecuratedimages/apps:openjdk-11-alpine-scone3.0
+FROM nexus.iex.ec/sconecuratedimages-apps-java:jdk-alpine-scone3.0
 
 COPY build/libs/tee-worker-post-compute-@projectversion@.jar /app/tee-worker-post-compute.jar
 COPY build/resources/main/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
-RUN mkdir /scone
+RUN mkdir /post-compute-tmp
 
 RUN which java
 
