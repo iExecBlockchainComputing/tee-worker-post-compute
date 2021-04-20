@@ -88,10 +88,20 @@ public class FlowManager {
 
     /*
      * 4 - sendComputedFileToHost
-     * Let's make ComputedFile available for worker contribute/reveal & core finalize
-     * Required:
-     * - iexec-worker and tee-worker-post-compute containers must be in the same network
-     * - iexec-worker within network should be accessible on `worker:13100` (domain_name:port)
+     *
+     * Let's make the ComputedFile available for worker contribute/reveal & core
+     * finalize.
+     * At this time, for security purposes, a Java enclave must be bundled inside
+     * a Scone BinaryFS. With BinaryFS, only Scone volumes (defined in palaemon
+     * session) can be shared from one component to another. Untrusted volumes
+     * cannot be shared to the host.
+     * To solve this, the untrusted volume (here the computed file) is transferred
+     * to the host over HTTP.
+     * In order to have the feature working, following conditions are required:
+     * - iexec-worker and tee-worker-post-compute containers must be in the
+     *   same network
+     * - iexec-worker within network should be accessible on `worker:13100`
+     *   (domain_name:port)
      * */
     public static void sendComputedFileToHost(ComputedFile computedFile) {
         log.info("Send ComputedFile stage started [computedFile:{}]", computedFile);
