@@ -1,0 +1,6 @@
+# Build app container
+FROM openjdk:11.0.3-jre-slim
+ARG JAR_PATH
+RUN echo ${JAR_PATH} && mkdir /app
+COPY $JAR_PATH /app/app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

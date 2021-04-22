@@ -21,12 +21,11 @@ buildscript {
 plugins {
     // Apply the java plugin to add support for Java
     id 'java'
-
     // Apply the application plugin to add support for building a CLI application
     id 'application'
+    id 'com.palantir.docker' version '0.26.0'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
-
-apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -66,28 +65,45 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 }
 
+def mainClass = 'com.iexec.worker.tee.post.compute.App'
 
 application {
-    mainClassName = 'com.iexec.worker.tee.post.compute.App'
+    mainClassName = mainClass
 }
 
-def imageName = "nexus.iex.ec/tee-worker-post-compute"
-
-
-project.ext.getDockerImageNameFull = {
-    def imageNameWithVersion = imageName + ":${version}"
-    return imageNameWithVersion
+//gradle run
+application {
+    // Define the main class for the application.
+    mainClass = mainClass
 }
 
-task prepareDockerFile(type: Copy) {
-    from 'src/main/resources/'
-    into 'build/resources/main/'
-    filter(ReplaceTokens, tokens: [projectversion: "${version}".toString()])
+// Jar with missing dependencies (app.jar)
+jar {
+    manifest {
+        attributes(
+                'Main-Class': mainClass
+        )
+    }
 }
 
-task buildImage(type: Exec) {
-    description 'Building a tee-worker-post-compute Docker image'
-    commandLine("sh", "-c", "docker image build -f build/resources/main/Dockerfile -t " + getDockerImageNameFull() + " . ")
+def app = 'app'
+def fatJar = "${app}-all.jar"
+
+// Jar with all dependencies (app-all.jar)
+shadowJar {
+    mainClassName = mainClass
+    archiveBaseName.set(app)
+    archiveVersion.set('') // remove version from name
 }
 
-buildImage.dependsOn prepareDockerFile
+docker {
+    name 'docker.io/iexechub/' + rootProject.name + ':dev'
+    dockerfile file('docker/Dockerfile.local')
+    files('build/libs/' + fatJar)
+    buildArgs([JAR_PATH: fatJar ])
+}
+tasks.docker.dependsOn tasks.build
+
+task buildImage {
+    dependsOn tasks.docker
+}
