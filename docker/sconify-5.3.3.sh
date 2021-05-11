@@ -6,7 +6,7 @@ docker run -it --rm \
             sconify_iexec \
                 --name=tee-post-compute \
                 --from=nexus.iex.ec/tee-worker-post-compute:dev \
-                --to=nexus.iex.ec/tee-worker-post-compute:dev-tee-5.3.3 \
+                --to=nexus.iex.ec/tee-worker-post-compute:dev-tee \
                 --binary-fs \
                 --fs-dir=/app \
                 --host-path=/etc/hosts \

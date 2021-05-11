@@ -14,7 +14,7 @@ access_policy:
 services:
    - name: service
      image_name: service_image
-     mrenclaves: [4a2636ad9c2de68b1374c1ec8365f08745911a8d69437a2ab8ce97db623d2fdb]
+     mrenclaves: [8000a8797370075865e65c2fa8c4ae60984811c12418cf29bbcf0d19166a89b0]
      command: "java -jar /app/app.jar"
      environment:
          SCONE_MODE: hw
