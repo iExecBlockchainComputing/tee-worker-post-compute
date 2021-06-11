@@ -1,4 +1,4 @@
-//Readme @ http://gitlab.iex.ec:30000/iexec/jenkins-library
+// Readme @ http://gitlab.iex.ec:30000/iexec/jenkins-library
 
 @Library('jenkins-library@1.0.2') _
 
@@ -27,13 +27,13 @@ node('docker') {
     def imageRegistry = 'docker.io/iexechub'
     def imageName = 'tee-worker-post-compute'
     def nativeImage = "$imageRegistry/$imageName:$imageTag"
+    def unlockedImage = "nexus.iex.ec/$imageName-unlocked:$imageTag-debug";
     def debugImage = "$imageRegistry/$imageName:$imageTag-debug"
     def productionImage = "$imageRegistry/$imageName:$imageTag-production";
 
 
     // /!\ UNLOCKED VERSION /!\
     stage('Trigger Unlocked TEE debug image build') {
-        def unlockedImage = "nexus.iex.ec/$imageName-unlocked:$imageTag-debug";
         sconeSigning(
                 IMG_FROM: "$nativeImage",
                 IMG_TO: "$unlockedImage",
@@ -56,7 +56,7 @@ node('docker') {
     }
 
     stage('Trigger TEE production image build') {
-        if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'main') {
+        // if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'main') {
             sconeSigning(
                     IMG_FROM: "$nativeImage",
                     IMG_TO: "$productionImage",
@@ -65,6 +65,6 @@ node('docker') {
                     SCONE_IMG_VERS: "$sconifyToolImageVersion",
                     FLAVOR: 'PROD'
             )
-        }
+        // }
     }
 }
