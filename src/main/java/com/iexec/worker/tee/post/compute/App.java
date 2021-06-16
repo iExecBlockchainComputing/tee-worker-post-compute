@@ -32,7 +32,7 @@ public class App {
         }
 
         signComputedFile(computedFile);
-        copyComputedFileToHost(computedFile);
+        sendComputedFileToHost(computedFile);
 
         log.info("Tee worker post-compute completed!");
     }
