@@ -16,7 +16,10 @@ import static com.iexec.worker.tee.post.compute.worflow.FlowManager.*;
 @Slf4j
 public class App {
 
-    public static void main(String[] args) {
+    private App() {
+    }
+
+    public static void main() {
         log.info("Tee worker post-compute started");
 
         boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
