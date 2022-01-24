@@ -110,6 +110,8 @@ shadowJar {
     archiveVersion.set('') // remove version from name
 }
 
+ext.jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
+
 docker {
     name 'nexus.iex.ec/' + rootProject.name + ':dev'
     dockerfile file('docker/Dockerfile.local')
