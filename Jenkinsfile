@@ -12,9 +12,11 @@ buildJavaProject(
         preProductionVisibility: 'docker.io',
         productionVisibility: 'docker.io')
 
-String gitShortCommit =
-        sh(script: 'git rev-parse --short=8 HEAD', returnStdout: true).trim()
-def nativeImage = 'nexus.iex.ec/' + repositoryName + ':' + gitShortCommit
+node('any') {
+    String gitShortCommit =
+            sh(script: 'git rev-parse --short=8 HEAD', returnStdout: true).trim()
+    def nativeImage = 'nexus.iex.ec/' + repositoryName + ':' + gitShortCommit
 
-sconeBuildAllTee(nativeImage: nativeImage, targetImageRepositoryName: repositoryName,
-        sconifyArgsPath: './docker/sconify.args')
+    sconeBuildAllTee(nativeImage: nativeImage, targetImageRepositoryName: repositoryName,
+            sconifyArgsPath: './docker/sconify.args')
+}
