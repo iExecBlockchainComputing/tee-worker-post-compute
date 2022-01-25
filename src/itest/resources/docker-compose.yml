@@ -1,0 +1,17 @@
+version: '3.4'
+
+networks:
+  iexec-net:
+    external: true
+
+services:
+  worker:
+    image: wiremock/wiremock
+    volumes:
+      - ./mappings:/home/wiremock/mappings
+    ports:
+      - 13100:13100
+    command:
+      '--port 13100'
+    networks:
+      - iexec-net

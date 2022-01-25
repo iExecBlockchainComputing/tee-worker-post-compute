@@ -28,6 +28,13 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntime.extendsFrom testRuntime
+    integrationTestAnnotationProcessor.extendsFrom annotationProcessor
+}
+
 dependencies {
     // iexec
     compile "com.iexec.common:iexec-common:$iexecCommonVersion"
@@ -39,7 +46,7 @@ dependencies {
     compile 'com.dropbox.core:dropbox-core-sdk:3.1.1'
 
     // lombok
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor "org.projectlombok:lombok:1.18.10"
     compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
     
@@ -48,6 +55,11 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.0'
+
+    // itest only
+    integrationTestCompile "org.testcontainers:testcontainers:1.16.2"
+    integrationTestCompile "org.testcontainers:junit-jupiter:1.16.2"
+    integrationTestCompile 'com.github.tomakehurst:wiremock-jre8:2.28.1'
 }
 
 test {
@@ -111,4 +123,33 @@ tasks.docker.dependsOn tasks.build
 
 task buildImage {
     dependsOn tasks.docker
+}
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir 'src/itest/java'
+        }
+        resources.srcDir 'src/itest/resources'
+    }
+}
+
+task itestSetup(type: Exec) {
+    commandLine 'echo', 'up'
+}
+
+task itestTeardown(type: Exec) {
+    commandLine 'echo', 'down'
+}
+
+task itest(type: Test) {
+    group 'Verification'
+    description 'Runs the integration tests.'
+    dependsOn   itestSetup, buildImage
+    finalizedBy itestTeardown
+    setTestClassesDirs(sourceSets.integrationTest.output)
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform()
 }
