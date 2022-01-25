@@ -19,7 +19,7 @@ public class App {
     private App() {
     }
 
-    public static void main() {
+    public static void main(String[] args) {
         log.info("Tee worker post-compute started");
 
         boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
