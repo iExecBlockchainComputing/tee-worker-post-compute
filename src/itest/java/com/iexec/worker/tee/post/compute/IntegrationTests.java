@@ -34,45 +34,59 @@ import java.io.File;
 @Slf4j
 class IntegrationTests {
 
-    @ClassRule
-    private static final DockerComposeContainer<?> environment =
-            new DockerComposeContainer<>(
-                    new File("src/itest/resources/docker-compose.yml"))
-                    .withLocalCompose(true);
+    public static final String WORKER = "worker";
+    public static final String POST_COMPUTE = "post-compute";
+    public static final String RESOURCES_DIR = "src/itest/resources";
+    public static final String MOCK_WORKER_DOCKER_COMPOSE_YML =
+            RESOURCES_DIR + "/docker-compose.yml";
+    public static final String TEE_WORKER_POST_COMPUTE_IMAGE =
+            "nexus.iex.ec/tee-worker-post-compute:dev";
 
+    @ClassRule
+    private static final DockerComposeContainer<?> worker =
+            new DockerComposeContainer<>(
+                    new File(MOCK_WORKER_DOCKER_COMPOSE_YML))
+                    .withLocalCompose(true);
     @Container
     public GenericContainer<?> postCompute =
-            new GenericContainer<>(DockerImageName.parse("nexus.iex.ec/tee-worker-post-compute:dev"));
+            new GenericContainer<>(DockerImageName
+                    .parse(TEE_WORKER_POST_COMPUTE_IMAGE));
 
     @BeforeEach
     void before() {
-        environment.start();
+        worker.withLogConsumer(WORKER, new Slf4jLogConsumer(log) //runtime logs
+                .withPrefix(WORKER))
+                .start();
+        postCompute
+                .withLogConsumer(new Slf4jLogConsumer(log)
+                        .withPrefix(POST_COMPUTE));
     }
 
     @AfterEach
     void after() {
-        environment.stop();
+        worker.stop();
     }
 
     @Test
-    void should() throws InterruptedException {
+    void shouldHandleCallback() throws InterruptedException {
         postCompute
                 .withNetworkMode("iexec-net")
                 .withEnv("RESULT_TASK_ID", "0x0000000000000000000000000000000000000000000000000000000000000001")
                 .withEnv("RESULT_STORAGE_CALLBACK", "yes")
-                .withEnv("RESULT_SIGN_WORKER_ADDRESS", "0x0000000000000000000000000000000000000001")
-                .withEnv("RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY", "0x000000000000000000000000000000000000000000000000000000000000001")
-                .withFileSystemBind("src/itest/resources/iexec_out", "/iexec_out");
+                .withEnv("RESULT_SIGN_WORKER_ADDRESS", "0x0000000000000000000000000000000000000002")
+                .withEnv("RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY", "0x000000000000000000000000000000000000000000000000000000000000003")
+                .withFileSystemBind(RESOURCES_DIR + "/iexec_out", "/iexec_out");
 
-        postCompute
-                .withLogConsumer(new Slf4jLogConsumer(log)) //get runtime logs
-                .start();
+        postCompute.start();
 
-        boolean isLogFound = waitForLog("Tee worker post-compute completed!", 10);
+        boolean isLogFound =
+                waitForLog("Tee worker post-compute completed!",
+                        10);
         Assertions.assertTrue(isLogFound);
     }
 
-    private boolean waitForLog(String wantedOutput, int secondsBeforeTimeout) throws InterruptedException {
+    private boolean waitForLog(String wantedOutput, int secondsBeforeTimeout)
+            throws InterruptedException {
         boolean ok = false;
         for (int i = 0; i < secondsBeforeTimeout; i++) {
             Thread.sleep(1000);

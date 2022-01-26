@@ -12,6 +12,6 @@ services:
     ports:
       - 13100:13100
     command:
-      '--port 13100'
+      '--port 13100 --verbose'
     networks:
       - iexec-net

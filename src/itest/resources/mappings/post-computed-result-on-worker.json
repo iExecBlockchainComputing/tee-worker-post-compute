@@ -1,11 +1,22 @@
 {
   "request": {
     "url": "/iexec_out/0x0000000000000000000000000000000000000000000000000000000000000001/computed",
-    "method": "POST"
+    "method": "POST",
+    "bodyPatterns": [
+      {
+        "equalToJson": {
+          "deterministic-output-path": null,
+          "callback-data": "0x000000000000000000000000000000000000000000000000000000000000000a",
+          "task-id": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "result-digest": "0xc65a7bb8d6351c1cf70c95a316cc6a92839c986682d98bc35f958f4883f9d2a8",
+          "enclave-signature": "0xfc9b8809b88af57718b2d4d853c8f105147894642775e95f43411d4f9f43e87606eb724ae08771a539cd0ca20d99a44a55434b96bca80f27e45f6a7307f5d41b1c"
+        }
+      }
+    ]
   },
   "response": {
     "status": 200,
-    "body": "{ \"test\": \"data\" }",
+    "body": "0x0000000000000000000000000000000000000000000000000000000000000001",
     "headers": {
       "Content-Type": "application/json"
     }
