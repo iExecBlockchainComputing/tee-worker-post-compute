@@ -16,6 +16,9 @@ import static com.iexec.worker.tee.post.compute.worflow.FlowManager.*;
 @Slf4j
 public class App {
 
+    private App() {
+    }
+
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
 
