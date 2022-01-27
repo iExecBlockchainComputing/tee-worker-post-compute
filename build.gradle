@@ -29,9 +29,11 @@ repositories {
 }
 
 configurations {
+    // itest configuration (inherit from test)
     integrationTestCompile.extendsFrom testCompile
     integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntime.extendsFrom testRuntime
+    // itest configuration (lombok, ..)
+    integrationTestCompileOnly.extendsFrom compileOnly
     integrationTestAnnotationProcessor.extendsFrom annotationProcessor
 }
 
@@ -46,14 +48,15 @@ dependencies {
     compile 'com.dropbox.core:dropbox-core-sdk:3.1.1'
 
     // lombok
-    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor "org.projectlombok:lombok:1.18.10"
     compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
-    
+
     //rest template
     compile group: 'org.springframework', name: 'spring-web', version: '5.2.4.RELEASE'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 
+    // test
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.0'
 
     // itest only
