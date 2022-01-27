@@ -18,6 +18,7 @@ package com.iexec.worker.tee.post.compute;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -30,6 +31,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 class IntegrationTests {
@@ -81,23 +83,12 @@ class IntegrationTests {
 
         postCompute.start();
 
-        boolean isLogFound =
-                waitForLog("Tee worker post-compute completed!",
-                        10);
-        Assertions.assertTrue(isLogFound);
-    }
-
-    private boolean waitForLog(String wantedOutput, int secondsBeforeTimeout)
-            throws InterruptedException {
-        boolean ok = false;
-        for (int i = 0; i < secondsBeforeTimeout; i++) {
-            Thread.sleep(1000);
-            if (postCompute.getLogs().contains(wantedOutput)) {
-                ok = true;
-                break;
-            }
-        }
-        return ok;
+        Awaitility.await()
+                .pollInterval(1, TimeUnit.SECONDS)
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() ->
+                        Assertions.assertTrue(postCompute.getLogs()
+                                .contains("Tee worker post-compute completed!")));
     }
 
 }
