@@ -1,8 +1,9 @@
-version: '3.4'
+version: '3.5'
 
 networks:
-  iexec-net:
-    external: true
+  iexec-post-compute-net:
+    name: iexec-post-compute-net
+    external: false
 
 services:
   worker:
@@ -14,4 +15,4 @@ services:
     command:
       '--port 13100 --verbose'
     networks:
-      - iexec-net
+      - iexec-post-compute-net

@@ -34,17 +34,19 @@ import java.io.File;
 @Slf4j
 class IntegrationTests {
 
-    public static final String WORKER = "worker";
-    public static final String POST_COMPUTE = "post-compute";
     public static final String RESOURCES_DIR = "src/itest/resources";
     public static final String MOCK_WORKER_DOCKER_COMPOSE_YML =
             RESOURCES_DIR + "/docker-compose.yml";
+    public static final String CONTAINERS_PREFIX = "iexec-";
+    public static final String WORKER = "worker";
+    public static final String POST_COMPUTE = "post-compute";
+    public static final String INTERNAL_NETWORK = "iexec-post-compute-net";
     public static final String TEE_WORKER_POST_COMPUTE_IMAGE =
             "nexus.iex.ec/tee-worker-post-compute:dev";
 
     @ClassRule
     private static final DockerComposeContainer<?> worker =
-            new DockerComposeContainer<>(
+            new DockerComposeContainer<>(CONTAINERS_PREFIX,
                     new File(MOCK_WORKER_DOCKER_COMPOSE_YML))
                     .withLocalCompose(true);
     @Container
@@ -70,7 +72,7 @@ class IntegrationTests {
     @Test
     void shouldHandleCallback() throws InterruptedException {
         postCompute
-                .withNetworkMode("iexec-net")
+                .withNetworkMode(INTERNAL_NETWORK)
                 .withEnv("RESULT_TASK_ID", "0x0000000000000000000000000000000000000000000000000000000000000001")
                 .withEnv("RESULT_STORAGE_CALLBACK", "yes")
                 .withEnv("RESULT_SIGN_WORKER_ADDRESS", "0x0000000000000000000000000000000000000002")
