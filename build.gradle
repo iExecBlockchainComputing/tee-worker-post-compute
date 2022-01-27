@@ -13,6 +13,8 @@ targetCompatibility = 11
 ext {
     gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
     jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
+    // versions
+    testContainersVersion = '1.16.2'
 }
 
 if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
@@ -51,7 +53,7 @@ dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor "org.projectlombok:lombok:1.18.10"
     compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
-
+    
     //rest template
     compile group: 'org.springframework', name: 'spring-web', version: '5.2.4.RELEASE'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
@@ -60,8 +62,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.0'
 
     // itest only
-    integrationTestCompile "org.testcontainers:testcontainers:1.16.2"
-    integrationTestCompile "org.testcontainers:junit-jupiter:1.16.2"
+    integrationTestCompile "org.testcontainers:testcontainers:${testContainersVersion}"
+    integrationTestCompile "org.testcontainers:junit-jupiter:${testContainersVersion}"
     integrationTestCompile 'com.github.tomakehurst:wiremock-jre8:2.28.1'
     integrationTestCompile 'org.awaitility:awaitility:4.1.1'
 
