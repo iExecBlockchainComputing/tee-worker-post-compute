@@ -143,19 +143,10 @@ sourceSets {
     }
 }
 
-task itestSetup(type: Exec) {
-    commandLine 'echo', 'up'
-}
-
-task itestTeardown(type: Exec) {
-    commandLine 'echo', 'down'
-}
-
 task itest(type: Test) {
     group 'Verification'
     description 'Runs the integration tests.'
-    dependsOn   itestSetup, buildImage
-    finalizedBy itestTeardown
+    dependsOn   buildImage
     setTestClassesDirs(sourceSets.integrationTest.output)
     classpath = sourceSets.integrationTest.runtimeClasspath
     useJUnitPlatform()
