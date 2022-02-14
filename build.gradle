@@ -13,6 +13,8 @@ targetCompatibility = 11
 ext {
     gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
     jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
+    // versions
+    testContainersVersion = '1.16.2'
 }
 
 if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
@@ -26,6 +28,15 @@ repositories {
         url "https://nexus.iex.ec/repository/maven-public/"
     }
     maven { url 'https://jitpack.io' }
+}
+
+configurations {
+    // itest configuration (inherit from test)
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestImplementation.extendsFrom testImplementation
+    // itest configuration (lombok, ..)
+    integrationTestCompileOnly.extendsFrom compileOnly
+    integrationTestAnnotationProcessor.extendsFrom annotationProcessor
 }
 
 dependencies {
@@ -47,7 +58,15 @@ dependencies {
     compile group: 'org.springframework', name: 'spring-web', version: '5.2.4.RELEASE'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 
+    // test
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.0'
+
+    // itest only
+    integrationTestCompile "org.testcontainers:testcontainers:${testContainersVersion}"
+    integrationTestCompile "org.testcontainers:junit-jupiter:${testContainersVersion}"
+    integrationTestCompile 'com.github.tomakehurst:wiremock-jre8:2.28.1'
+    integrationTestCompile 'org.awaitility:awaitility:4.1.1'
+
 }
 
 test {
@@ -111,4 +130,24 @@ tasks.docker.dependsOn tasks.build
 
 task buildImage {
     dependsOn tasks.docker
+}
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir 'src/itest/java'
+        }
+        resources.srcDir 'src/itest/resources'
+    }
+}
+
+task itest(type: Test) {
+    group 'Verification'
+    description 'Runs the integration tests.'
+    dependsOn   buildImage
+    setTestClassesDirs(sourceSets.integrationTest.output)
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform()
 }

@@ -1,0 +1,18 @@
+version: '3.5'
+
+networks:
+  iexec-post-compute-net:
+    name: iexec-post-compute-net
+    external: false
+
+services:
+  worker:
+    image: wiremock/wiremock
+    volumes:
+      - ./mappings:/home/wiremock/mappings
+    ports:
+      - 13100:13100
+    command:
+      '--port 13100 --verbose'
+    networks:
+      - iexec-post-compute-net
