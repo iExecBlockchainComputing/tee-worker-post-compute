@@ -19,7 +19,6 @@ package com.iexec.worker.tee.post.compute;
 
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +45,7 @@ class IntegrationTests {
     public static final String TEE_WORKER_POST_COMPUTE_IMAGE =
             "nexus.iex.ec/tee-worker-post-compute:dev";
 
-    @ClassRule
+    @Container
     private static final DockerComposeContainer<?> worker =
             new DockerComposeContainer<>(CONTAINERS_PREFIX,
                     new File(MOCK_WORKER_DOCKER_COMPOSE_YML))
