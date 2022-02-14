@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@feature/sconifier-5.3.10') _
+@Library('global-jenkins-library@1.6.1') _
 
 String repositoryName = 'tee-worker-post-compute'
 
