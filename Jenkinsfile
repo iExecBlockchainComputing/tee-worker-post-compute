@@ -4,7 +4,7 @@ String repositoryName = 'tee-worker-post-compute'
 
 buildJavaProject(
         integrationTestsEnvVars: [],
-        shouldPublishJars: true,
+        shouldPublishJars: false,
         shouldPublishDockerImages: true,
         dockerfileDir: 'docker',
         buildContext: '.',
