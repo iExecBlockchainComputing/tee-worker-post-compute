@@ -2,7 +2,7 @@
 
 String repositoryName = 'tee-worker-post-compute'
 
-Map buildInfo = getBuildInfo()
+buildInfo = getBuildInfo()
 
 buildJavaProject(
         buildInfo: buildInfo,
