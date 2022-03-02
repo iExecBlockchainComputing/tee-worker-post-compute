@@ -1,8 +1,11 @@
-@Library('global-jenkins-library@1.6.2') _
+@Library('global-jenkins-library@feature/build-info') _
 
 String repositoryName = 'tee-worker-post-compute'
 
+Map buildInfo = getBuildInfo()
+
 buildJavaProject(
+        buildInfo: buildInfo,
         integrationTestsEnvVars: [],
         shouldPublishJars: false,
         shouldPublishDockerImages: true,
