@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@1.7.0') _
+@Library('global-jenkins-library@feature/checkout-after-node-setup') _
 
 String repositoryName = 'tee-worker-post-compute'
 
