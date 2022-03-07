@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@feature/build-info') _
+@Library('global-jenkins-library@1.7.0') _
 
 String repositoryName = 'tee-worker-post-compute'
 
