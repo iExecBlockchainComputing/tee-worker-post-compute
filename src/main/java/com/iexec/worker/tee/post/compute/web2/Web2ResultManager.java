@@ -2,6 +2,8 @@ package com.iexec.worker.tee.post.compute.web2;
 
 import com.iexec.common.utils.FileHelper;
 import com.iexec.common.worker.result.ResultUtils;
+import com.iexec.worker.tee.post.compute.PostComputeException;
+import com.iexec.worker.tee.post.compute.exit.PostComputeExitCode;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,7 +14,6 @@ import static com.iexec.common.chain.DealParams.DROPBOX_RESULT_STORAGE_PROVIDER;
 import static com.iexec.common.chain.DealParams.IPFS_RESULT_STORAGE_PROVIDER;
 import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.worker.result.ResultUtils.*;
-import static com.iexec.worker.tee.post.compute.utils.EnvUtils.exit;
 
 @Slf4j
 public class Web2ResultManager {
@@ -21,18 +22,18 @@ public class Web2ResultManager {
     /*
      * Manager
      * */
-    public static void encryptAndUploadResult(String taskId) {
+    public static void encryptAndUploadResult(String taskId) throws PostComputeException {
         // save zip file to the protected region /post-compute-tmp (temporarily)
         String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_POST_COMPUTE_TMP);
         if (iexecOutZipPath.isEmpty()) {
             log.error("zipIexecOut stage failed");
-            exit();
+            throw new PostComputeException(PostComputeExitCode.OUT_FOLDER_ZIP_FAILED);
         }
         String resultPath = eventuallyEncryptResult(iexecOutZipPath);
         String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
     }
 
-    private static String eventuallyEncryptResult(String inDataFilePath) {
+    private static String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
         log.info("Encryption stage started");
         String fileToUpload;
         boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
@@ -42,25 +43,25 @@ public class Web2ResultManager {
             fileToUpload = inDataFilePath;
         } else {
             log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
-            String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrExit(RESULT_ENCRYPTION_PUBLIC_KEY);
+            String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY);
             String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
             fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
         }
 
         if (fileToUpload.isEmpty()) {
             log.error("Encryption stage failed");
-            exit();
+            throw new PostComputeException(PostComputeExitCode.ENCRYPTION_FAILED);
         } else {
             log.info("Encryption stage completed");
         }
         return fileToUpload;
     }
 
-    private static String uploadResult(String taskId, String fileToUploadPath) {
+    private static String uploadResult(String taskId, String fileToUploadPath) throws PostComputeException {
         log.info("Upload stage started");
         String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
         String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
-        String storageToken = EnvUtils.getEnvVarOrExit(RESULT_STORAGE_TOKEN);
+        String storageToken = EnvUtils.getEnvVarOrThrow(RESULT_STORAGE_TOKEN);
 
         String resultLink = "";
         switch (storageProvider) {
@@ -74,10 +75,6 @@ public class Web2ResultManager {
                 log.info("Upload stage mode: IPFS_STORAGE");
                 resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
                 break;
-        }
-        if (resultLink.isEmpty()) {
-            log.error("Upload stage failed");
-            exit();
         }
 
         log.info("Upload stage completed");

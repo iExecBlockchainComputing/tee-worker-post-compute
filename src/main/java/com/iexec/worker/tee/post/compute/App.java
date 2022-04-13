@@ -3,6 +3,7 @@
  */
 package com.iexec.worker.tee.post.compute;
 
+import com.iexec.common.precompute.PreComputeExitCode;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import com.iexec.worker.tee.post.compute.web2.Web2ResultManager;
@@ -22,11 +23,28 @@ public class App {
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
 
+        int exitCode = PreComputeExitCode.SUCCESS.value();
+        try {
+            runPostCompute();
+        } catch(PostComputeException e) {
+            log.error("TEE post-compute failed with a known error " +
+                            "[errorMessage:{}, errorCode:{}]", e.getExitCode(),
+                    e.getExitCode().value(), e);
+            exitCode = e.getExitCode().value();
+        } catch (Exception e) {
+            log.error("TEE post-compute failed with an unknown error", e);
+            exitCode = PreComputeExitCode.UNKNOWN_ERROR.value();
+        } finally {
+            log.info("TEE post-compute finished");
+            System.exit(exitCode);
+        }
+    }
+
+    private static void runPostCompute() throws PostComputeException {
         boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
-        String taskId = EnvUtils.getEnvVarOrExit(RESULT_TASK_ID);
+        String taskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID);
 
         ComputedFile computedFile = readComputedFile(taskId);
-
 
         buildResultDigestInComputedFile(computedFile, shouldCallback);
 
@@ -36,8 +54,6 @@ public class App {
 
         signComputedFile(computedFile);
         sendComputedFileToHost(computedFile);
-
-        log.info("Tee worker post-compute completed!");
     }
 
 }
