@@ -5,6 +5,7 @@ package com.iexec.worker.tee.post.compute;
 
 import com.iexec.common.precompute.PreComputeExitCode;
 import com.iexec.common.result.ComputedFile;
+import com.iexec.worker.tee.post.compute.exit.PostComputeExitCode;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import com.iexec.worker.tee.post.compute.web2.Web2ResultManager;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
+import static com.iexec.worker.tee.post.compute.exit.PostComputeExitService.sendExitMessageToHost;
 import static com.iexec.worker.tee.post.compute.worflow.FlowManager.*;
 
 @Slf4j
@@ -20,29 +22,37 @@ public class App {
     private App() {
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws PostComputeException {
         log.info("Tee worker post-compute started");
 
-        int exitCode = PreComputeExitCode.SUCCESS.value();
+        String taskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID);
+
+        PostComputeExitCode exitCode = PostComputeExitCode.SUCCESS;
         try {
-            runPostCompute();
+            runPostCompute(taskId);
         } catch(PostComputeException e) {
             log.error("TEE post-compute failed with a known error " +
-                            "[errorMessage:{}, errorCode:{}]", e.getExitCode(),
-                    e.getExitCode().value(), e);
-            exitCode = e.getExitCode().value();
+                            "[errorMessage:{}]",
+                    e.getExitCode(), e);
+            exitCode = e.getExitCode();
         } catch (Exception e) {
             log.error("TEE post-compute failed with an unknown error", e);
-            exitCode = PreComputeExitCode.UNKNOWN_ERROR.value();
+            exitCode = PostComputeExitCode.UNKNOWN_ERROR;
         } finally {
+            final boolean exitMessageTransmitted = sendExitMessageToHost(taskId, exitCode);
+
             log.info("TEE post-compute finished");
-            System.exit(exitCode);
+            System.exit(
+                    exitCode == PostComputeExitCode.SUCCESS && exitMessageTransmitted
+                            ? 0
+                            : -1
+            );
         }
     }
 
-    private static void runPostCompute() throws PostComputeException {
+    private static void runPostCompute(String taskId) throws PostComputeException {
         boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
-        String taskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID);
+
 
         ComputedFile computedFile = readComputedFile(taskId);
 

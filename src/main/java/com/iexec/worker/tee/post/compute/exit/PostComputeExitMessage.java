@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,11 @@
 
 package com.iexec.worker.tee.post.compute.exit;
 
-public enum PostComputeExitCode {
-    UNKNOWN_ERROR,
-    SUCCESS,
-    EMPTY_REQUIRED_ENV_VAR,
-    COMPUTED_FILE_NOT_FOUND,
-    RESULT_DIGEST_COMPUTATION_FAILED,
-    OUT_FOLDER_ZIP_FAILED,
-    ENCRYPTION_FAILED,
-    RESULT_FILE_NOT_FOUND,
-    DROPBOX_UPLOAD_FAILED,
-    IPFS_UPLOAD_RAILED,
-    INVALID_TEE_SIGNATURE,
-    SEND_COMPUTED_FILE_FAILED;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class PostComputeExitMessage {
+    private final PostComputeExitCode exitCode;
 }
