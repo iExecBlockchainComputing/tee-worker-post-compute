@@ -3,13 +3,15 @@
  */
 package com.iexec.worker.tee.post.compute;
 
-import com.iexec.common.precompute.PreComputeExitCode;
+import com.iexec.common.replicate.ReplicateStatusCause;
 import com.iexec.common.result.ComputedFile;
-import com.iexec.worker.tee.post.compute.exit.PostComputeExitCode;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import com.iexec.worker.tee.post.compute.web2.Web2ResultManager;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
+
+import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
@@ -22,31 +24,30 @@ public class App {
     private App() {
     }
 
-    public static void main(String[] args) throws PostComputeException {
+    public static void main(String[] args) {
         log.info("Tee worker post-compute started");
 
-        String taskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID);
+        String taskId = null;
+        Optional<ReplicateStatusCause> statusCause = Optional.empty();
 
-        PostComputeExitCode exitCode = PostComputeExitCode.SUCCESS;
         try {
+            taskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_MISSING_TASK_ID);
             runPostCompute(taskId);
         } catch(PostComputeException e) {
             log.error("TEE post-compute failed with a known error " +
                             "[errorMessage:{}]",
-                    e.getExitCode(), e);
-            exitCode = e.getExitCode();
+                    e.getStatusCause(), e);
+            statusCause = Optional.of(e.getStatusCause());
         } catch (Exception e) {
             log.error("TEE post-compute failed with an unknown error", e);
-            exitCode = PostComputeExitCode.UNKNOWN_ERROR;
+            statusCause = Optional.of(POST_COMPUTE_UNKNOWN_ISSUE);
         } finally {
-            final boolean exitMessageTransmitted = sendExitMessageToHost(taskId, exitCode);
+            if (statusCause.isPresent()) {
+                sendExitMessageToHost(taskId, statusCause.get());
+            }
 
             log.info("TEE post-compute finished");
-            System.exit(
-                    exitCode == PostComputeExitCode.SUCCESS && exitMessageTransmitted
-                            ? 0
-                            : -1
-            );
+            System.exit(statusCause.isEmpty() ? 0 : -1);
         }
     }
 

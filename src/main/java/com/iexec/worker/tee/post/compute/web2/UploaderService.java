@@ -5,7 +5,6 @@ import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.iexec.common.result.ResultModel;
 import com.iexec.worker.tee.post.compute.PostComputeException;
-import com.iexec.worker.tee.post.compute.exit.PostComputeExitCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,13 +16,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static com.iexec.common.replicate.ReplicateStatusCause.*;
+
 @Slf4j
 public class UploaderService {
 
     public static String uploadToDropBox(String localFilePath, String dropboxAccessToken, String remoteFilename) throws PostComputeException {
         if (localFilePath == null || !new File(localFilePath).exists()){
             log.error("Can't uploadToDropBox (localFile issue) (exiting)");
-            throw new PostComputeException(PostComputeExitCode.RESULT_FILE_NOT_FOUND);
+            throw new PostComputeException(POST_COMPUTE_RESULT_FILE_NOT_FOUND);
         }
 
         DbxRequestConfig config = DbxRequestConfig.newBuilder("").build();
@@ -36,7 +37,7 @@ public class UploaderService {
                     localFilePath, remoteFilename, isConnected);
         } catch (DbxException e) {
             log.error("Can't upload to Dropbox with provided token (exiting)");
-            throw new PostComputeException(PostComputeExitCode.DROPBOX_UPLOAD_FAILED);
+            throw new PostComputeException(POST_COMPUTE_DROPBOX_UPLOAD_FAILED);
         }
 
         return DropBoxService.uploadFile(client, new File(localFilePath), "/results/" + remoteFilename);
@@ -50,7 +51,7 @@ public class UploaderService {
             fileToUpload = Files.readAllBytes(Paths.get(fileToUploadPath));
         } catch (IOException e) {
             log.error("Can't uploadToIpfsWithIexecProxy (missing filePath to upload) [taskId:{}, fileToUploadPath:{}]", taskId, fileToUploadPath);
-            throw new PostComputeException(PostComputeExitCode.RESULT_FILE_NOT_FOUND);
+            throw new PostComputeException(POST_COMPUTE_RESULT_FILE_NOT_FOUND);
         }
 
         ResultModel resultModel = ResultModel.builder()
@@ -72,7 +73,7 @@ public class UploaderService {
 
         log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}, status:{}]",
                 taskId, response.getStatusCode());
-        throw new PostComputeException(PostComputeExitCode.IPFS_UPLOAD_RAILED);
+        throw new PostComputeException(POST_COMPUTE_IPFS_UPLOAD_RAILED);
 
     }
 

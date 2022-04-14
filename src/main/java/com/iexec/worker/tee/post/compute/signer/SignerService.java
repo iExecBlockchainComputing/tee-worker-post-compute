@@ -3,9 +3,9 @@ package com.iexec.worker.tee.post.compute.signer;
 import com.iexec.common.security.Signature;
 import com.iexec.common.utils.CredentialsUtils;
 import com.iexec.worker.tee.post.compute.PostComputeException;
-import com.iexec.worker.tee.post.compute.exit.PostComputeExitCode;
 import lombok.extern.slf4j.Slf4j;
 
+import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_INVALID_TEE_SIGNATURE;
 import static com.iexec.common.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignature;
 
@@ -21,7 +21,7 @@ public class SignerService {
 
         if (!isSignatureValid) {
             log.error("Failed to verify TeeEnclaveChallenge signature (exiting)");
-            throw new PostComputeException(PostComputeExitCode.INVALID_TEE_SIGNATURE);
+            throw new PostComputeException(POST_COMPUTE_INVALID_TEE_SIGNATURE);
         }
 
         return enclaveChallengeSignature.getValue();

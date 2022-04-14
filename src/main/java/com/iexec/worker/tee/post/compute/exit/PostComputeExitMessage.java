@@ -16,11 +16,12 @@
 
 package com.iexec.worker.tee.post.compute.exit;
 
+import com.iexec.common.replicate.ReplicateStatusCause;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
 public class PostComputeExitMessage {
-    private final PostComputeExitCode exitCode;
+    private final ReplicateStatusCause message;
 }

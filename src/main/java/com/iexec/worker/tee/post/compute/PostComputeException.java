@@ -16,20 +16,20 @@
 
 package com.iexec.worker.tee.post.compute;
 
-import com.iexec.worker.tee.post.compute.exit.PostComputeExitCode;
+import com.iexec.common.replicate.ReplicateStatusCause;
 import lombok.Getter;
 
 public class PostComputeException extends Exception {
 
     @Getter
-    private final PostComputeExitCode exitCode;
+    private final ReplicateStatusCause statusCause;
 
-    public PostComputeException(PostComputeExitCode exitCode) {
-        this(exitCode, exitCode.name());
+    public PostComputeException(ReplicateStatusCause statusCause) {
+        this(statusCause, statusCause.name());
     }
 
-    public PostComputeException(PostComputeExitCode exitCode, String message) {
+    public PostComputeException(ReplicateStatusCause statusCause, String message) {
         super(message);
-        this.exitCode = exitCode;
+        this.statusCause = statusCause;
     }
 }

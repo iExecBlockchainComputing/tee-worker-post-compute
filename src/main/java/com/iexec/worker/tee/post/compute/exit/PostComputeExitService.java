@@ -16,6 +16,7 @@
 
 package com.iexec.worker.tee.post.compute.exit;
 
+import com.iexec.common.replicate.ReplicateStatusCause;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +30,17 @@ import org.springframework.web.client.RestTemplate;
 public class PostComputeExitService {
     public static final String WORKER_HOST = "worker:13100";
 
-    public static boolean sendExitMessageToHost(String chainTaskId, PostComputeExitCode exitCode) {
-        log.info("Send exit message stage started [exitCode:{}]", exitCode);
-        HttpEntity<PostComputeExitMessage> request = new HttpEntity<>(new PostComputeExitMessage(exitCode));
+    public static boolean sendExitMessageToHost(String chainTaskId, ReplicateStatusCause statusCause) {
+        log.info("Send exit message stage started [statusCause:{}]", statusCause);
+        HttpEntity<PostComputeExitMessage> request = new HttpEntity<>(new PostComputeExitMessage(statusCause));
         String baseUrl = String.format("http://%s/post-compute/%s/exit",
                 WORKER_HOST, chainTaskId);
-        ResponseEntity<String> response = new RestTemplate()
-                .postForEntity(baseUrl, request, String.class);
+        ResponseEntity<Void> response = new RestTemplate()
+                .postForEntity(baseUrl, request, Void.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            log.error("Send exit message stage failed [taskId:{}, exitCode:{}]",
-                    chainTaskId, exitCode);
+            log.error("Send exit message stage failed [taskId:{}, statusCause:{}]",
+                    chainTaskId, statusCause);
             return false;
         }
         log.info("Send exit message stage completed");

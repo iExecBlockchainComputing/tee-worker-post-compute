@@ -7,7 +7,6 @@ import com.iexec.common.utils.HashUtils;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.tee.post.compute.PostComputeException;
-import com.iexec.worker.tee.post.compute.exit.PostComputeExitCode;
 import com.iexec.worker.tee.post.compute.signer.SignerService;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
 
@@ -34,7 +34,7 @@ public class FlowManager {
         if (computedFile == null) {
             final String cause = "computed.json missing";
             log.error("ReadComputedFile failed (" + cause + ")");
-            throw new PostComputeException(PostComputeExitCode.COMPUTED_FILE_NOT_FOUND, cause);
+            throw new PostComputeException(POST_COMPUTE_COMPUTED_FILE_NOT_FOUND, cause);
         }
 
         log.info("ReadComputedFile stage completed");
@@ -58,7 +58,7 @@ public class FlowManager {
         if (resultDigest.isEmpty()) {
             final String cause = "empty resultDigest";
             log.error("ResultDigest stage failed (" + cause + ")");
-            throw new PostComputeException(PostComputeExitCode.RESULT_DIGEST_COMPUTATION_FAILED, cause);
+            throw new PostComputeException(POST_COMPUTE_RESULT_DIGEST_COMPUTATION_FAILED, cause);
         }
 
         computedFile.setResultDigest(resultDigest);
@@ -72,12 +72,12 @@ public class FlowManager {
     public static void signComputedFile(ComputedFile computedFile) throws PostComputeException {
         log.info("Signer stage started");
 
-        String workerAddress = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_WORKER_ADDRESS);
+        String workerAddress = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_WORKER_ADDRESS, POST_COMPUTE_MISSING_WORKER_ADDRESS);
         String resultHash = HashUtils.concatenateAndHash(computedFile.getTaskId(), computedFile.getResultDigest());
         String resultSeal = HashUtils.concatenateAndHash(workerAddress, computedFile.getTaskId(), computedFile.getResultDigest());
         String messageHash = TeeEnclaveChallengeSignature.getMessageHash(resultHash, resultSeal);
 
-        String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY);
+        String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, POST_COMPUTE_MISSING_TEE_CHALLENGE_PRIVATE_KEY);
 
         String enclaveSignature = SignerService.signEnclaveChallenge(messageHash, teeChallengePrivateKey);
 
@@ -113,7 +113,7 @@ public class FlowManager {
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.error("Send ComputedFile stage failed [taskId:{}, status:{}]",
                     computedFile.getTaskId(), response.getStatusCode());
-            throw new PostComputeException(PostComputeExitCode.SEND_COMPUTED_FILE_FAILED);
+            throw new PostComputeException(POST_COMPUTE_SEND_COMPUTED_FILE_FAILED);
         }
         log.info("Send ComputedFile stage completed");
     }
