@@ -24,31 +24,62 @@ public class App {
     private App() {
     }
 
+    /**
+     * Exits:
+     * - 0: Success
+     * - 1: Failure; Reported cause (known or unknown)
+     * - 2: Failure; Unreported cause since reporting issue
+     * - 3: Failure; Unreported cause since missing taskID context
+     */
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
 
         String taskId = null;
-        Optional<ReplicateStatusCause> statusCause = Optional.empty();
+        ReplicateStatusCause statusCause = null;
 
         try {
             taskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_MISSING_TASK_ID);
+        } catch (PostComputeException e) {
+            log.error("TEE post-compute cannot go further without taskID context");
+            System.exit(3);
+        }
+
+        try {
             runPostCompute(taskId);
         } catch(PostComputeException e) {
             log.error("TEE post-compute failed with a known error " +
                             "[errorMessage:{}]",
                     e.getStatusCause(), e);
-            statusCause = Optional.of(e.getStatusCause());
+            statusCause = e.getStatusCause();
         } catch (Exception e) {
             log.error("TEE post-compute failed with an unknown error", e);
-            statusCause = Optional.of(POST_COMPUTE_UNKNOWN_ISSUE);
-        } finally {
-            if (statusCause.isPresent()) {
-                sendExitMessageToHost(taskId, statusCause.get());
-            }
-
-            log.info("TEE post-compute finished");
-            System.exit(statusCause.isEmpty() ? 0 : -1);
+            statusCause = POST_COMPUTE_UNKNOWN_ISSUE;
         }
+
+        exitPostCompute(taskId, statusCause);
+    }
+
+    private static void exitPostCompute(String taskId, ReplicateStatusCause statusCause) {
+        boolean exitMessageTransmitted = true;
+        if (statusCause != null) {
+            exitMessageTransmitted = sendExitMessageToHost(taskId, statusCause);
+        }
+
+        int exitCode;
+        if (statusCause == null) {
+            // Success: no issue detected.
+            exitCode = 0;
+        } else if (exitMessageTransmitted && statusCause.equals(POST_COMPUTE_UNKNOWN_ISSUE)) {
+            // Fail: a known issue has been detected and transmitted.
+            exitCode = 1;
+        } else {
+            // Fail: an unknown issue has been detected
+            // or a known issue has not been transmitted.
+            exitCode = 2;
+        }
+
+        log.info("TEE post-compute finished");
+        System.exit(exitCode);
     }
 
     private static void runPostCompute(String taskId) throws PostComputeException {
