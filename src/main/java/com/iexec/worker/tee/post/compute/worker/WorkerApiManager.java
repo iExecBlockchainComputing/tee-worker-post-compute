@@ -16,19 +16,24 @@
 
 package com.iexec.worker.tee.post.compute.worker;
 
-import com.iexec.common.result.ComputedFile;
-import com.iexec.common.worker.api.ExitMessage;
-import feign.Param;
-import feign.RequestLine;
+import com.iexec.common.utils.FeignBuilder;
+import feign.Logger;
 
-public interface WorkerApiClient {
+public class WorkerApiManager {
+    private static final String WORKER_HOST = "worker:13100";
 
-    @RequestLine("POST /compute/post/{chainTaskId}/exit")
-    void sendExitCauseForPosComputeStage(@Param("chainTaskId") String chainTaskId,
-                                         ExitMessage exitMessage);
+    private static WorkerApiClient workerApiClient;
 
-    @RequestLine("POST /compute/post/{chainTaskId}/computed")
-    void sendComputedFileToHost(@Param("chainTaskId") String chainTaskId,
-                                ComputedFile computedFile);
+    private WorkerApiManager() {
+        throw new UnsupportedOperationException();
+    }
 
+    public static WorkerApiClient getWorkerApiClient() {
+        if (workerApiClient == null) {
+            workerApiClient = FeignBuilder
+                    .createBuilder(Logger.Level.FULL)
+                    .target(WorkerApiClient.class, "http://" + WORKER_HOST);
+        }
+        return workerApiClient;
+    }
 }

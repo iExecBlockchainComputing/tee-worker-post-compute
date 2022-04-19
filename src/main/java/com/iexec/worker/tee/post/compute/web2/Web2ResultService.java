@@ -16,13 +16,13 @@ import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.worker.result.ResultUtils.*;
 
 @Slf4j
-public class Web2ResultManager {
+public class Web2ResultService {
 
     public static final String SLASH_POST_COMPUTE_TMP = File.separator + "post-compute-tmp";
     /*
      * Manager
      * */
-    public static void encryptAndUploadResult(String taskId) throws PostComputeException {
+    public void encryptAndUploadResult(String taskId) throws PostComputeException {
         // save zip file to the protected region /post-compute-tmp (temporarily)
         String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_POST_COMPUTE_TMP);
         if (iexecOutZipPath.isEmpty()) {
@@ -33,7 +33,7 @@ public class Web2ResultManager {
         String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
     }
 
-    private static String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
+    private String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
         log.info("Encryption stage started");
         String fileToUpload;
         boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
@@ -57,7 +57,7 @@ public class Web2ResultManager {
         return fileToUpload;
     }
 
-    private static String uploadResult(String taskId, String fileToUploadPath) throws PostComputeException {
+    private String uploadResult(String taskId, String fileToUploadPath) throws PostComputeException {
         log.info("Upload stage started");
         String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
         String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);

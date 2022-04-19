@@ -9,25 +9,24 @@ import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.tee.post.compute.PostComputeException;
 import com.iexec.worker.tee.post.compute.signer.SignerService;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
+import com.iexec.worker.tee.post.compute.worker.WorkerApiClient;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
+import static com.iexec.worker.tee.post.compute.worker.WorkerApiManager.getWorkerApiClient;
 
 @Slf4j
-public class FlowManager {
+public class FlowService {
 
-    public static final String WORKER_HOST = "worker:13100";
 
     /*
      * 1 - readComputedFile
      *
      * */
-    public static ComputedFile readComputedFile(String taskId) throws PostComputeException {
+    public ComputedFile readComputedFile(String taskId) throws PostComputeException {
         log.info("ReadComputedFile stage started");
 
         ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, FileHelper.SLASH_IEXEC_OUT);
@@ -45,7 +44,7 @@ public class FlowManager {
      * 2 - buildResultDigestInComputedFile
      *
      * */
-    public static void buildResultDigestInComputedFile(ComputedFile computedFile, boolean isCallbackMode) throws PostComputeException {
+    public void buildResultDigestInComputedFile(ComputedFile computedFile, boolean isCallbackMode) throws PostComputeException {
         log.info("ResultDigest stage started [mode:{}]", isCallbackMode ? "web3" : "web2");
 
         String resultDigest;
@@ -69,7 +68,7 @@ public class FlowManager {
      * 3 - signComputedFile
      *
      * */
-    public static void signComputedFile(ComputedFile computedFile) throws PostComputeException {
+    public void signComputedFile(ComputedFile computedFile) throws PostComputeException {
         log.info("Signer stage started");
 
         String workerAddress = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_WORKER_ADDRESS, POST_COMPUTE_MISSING_WORKER_ADDRESS);
@@ -102,20 +101,18 @@ public class FlowManager {
      * - iexec-worker within network should be accessible on `worker:13100`
      *   (domain_name:port)
      * */
-    public static void sendComputedFileToHost(ComputedFile computedFile) throws PostComputeException {
+    public void sendComputedFileToHost(ComputedFile computedFile) throws PostComputeException {
         log.info("Send ComputedFile stage started [computedFile:{}]", computedFile);
-        HttpEntity<ComputedFile> request = new HttpEntity<>(computedFile);
-        String baseUrl = String.format("http://%s/iexec_out/%s/computed",
-                WORKER_HOST, computedFile.getTaskId());
-        ResponseEntity<String> response = new RestTemplate()
-                .postForEntity(baseUrl, request, String.class);
+        final WorkerApiClient workerApiClient = getWorkerApiClient();
 
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            log.error("Send ComputedFile stage failed [taskId:{}, status:{}]",
-                    computedFile.getTaskId(), response.getStatusCode());
+        try {
+            workerApiClient.sendComputedFileToHost(computedFile.getTaskId(), computedFile);
+        } catch (FeignException e) {
+            log.error("Send ComputedFile stage failed [taskId:{}]",
+                    computedFile.getTaskId(), e);
             throw new PostComputeException(POST_COMPUTE_SEND_COMPUTED_FILE_FAILED);
         }
+
         log.info("Send ComputedFile stage completed");
     }
-
 }
