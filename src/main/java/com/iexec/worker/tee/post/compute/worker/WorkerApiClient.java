@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.iexec.worker.tee.post.compute.exit;
+package com.iexec.worker.tee.post.compute.worker;
 
-import com.iexec.common.replicate.ReplicateStatusCause;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.iexec.common.worker.api.ExitMessage;
+import feign.Param;
+import feign.RequestLine;
 
-@Getter
-@AllArgsConstructor
-public class PostComputeExitMessage {
-    private final ReplicateStatusCause message;
+public interface WorkerApiClient {
+
+    @RequestLine("POST /compute/post/{chainTaskId}/exit")
+    void sendExitCauseForPosComputeStage(@Param("chainTaskId") String chainTaskId,
+                                         ExitMessage exitMessage);
+
 }

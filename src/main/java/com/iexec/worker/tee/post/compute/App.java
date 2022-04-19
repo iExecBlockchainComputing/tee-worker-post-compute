@@ -5,17 +5,20 @@ package com.iexec.worker.tee.post.compute;
 
 import com.iexec.common.replicate.ReplicateStatusCause;
 import com.iexec.common.result.ComputedFile;
+import com.iexec.common.utils.FeignBuilder;
+import com.iexec.common.worker.api.ExitMessage;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import com.iexec.worker.tee.post.compute.web2.Web2ResultManager;
+import com.iexec.worker.tee.post.compute.worker.WorkerApiClient;
+import feign.FeignException;
+import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Optional;
-
-import static com.iexec.common.replicate.ReplicateStatusCause.*;
+import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_MISSING_TASK_ID;
+import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_UNKNOWN_ISSUE;
 import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
-import static com.iexec.worker.tee.post.compute.exit.PostComputeExitService.sendExitMessageToHost;
 import static com.iexec.worker.tee.post.compute.worflow.FlowManager.*;
 
 @Slf4j
@@ -34,52 +37,40 @@ public class App {
     public static void main(String[] args) {
         log.info("Tee worker post-compute started");
 
-        String taskId = null;
-        ReplicateStatusCause statusCause = null;
+        String chainTaskId = null;
+        ReplicateStatusCause exitCause = POST_COMPUTE_UNKNOWN_ISSUE;
 
         try {
-            taskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_MISSING_TASK_ID);
+            chainTaskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_MISSING_TASK_ID);
         } catch (PostComputeException e) {
             log.error("TEE post-compute cannot go further without taskID context");
             System.exit(3);
         }
 
         try {
-            runPostCompute(taskId);
+            runPostCompute(chainTaskId);
+            log.info("TEE post-compute completed");
+            System.exit(0);
         } catch(PostComputeException e) {
-            log.error("TEE post-compute failed with a known error " +
+            exitCause = e.getStatusCause();
+            log.error("TEE post-compute failed with a known exitCause " +
                             "[errorMessage:{}]",
                     e.getStatusCause(), e);
-            statusCause = e.getStatusCause();
         } catch (Exception e) {
-            log.error("TEE post-compute failed with an unknown error", e);
-            statusCause = POST_COMPUTE_UNKNOWN_ISSUE;
+            log.error("TEE post-compute failed without explicit exitCause", e);
         }
 
-        exitPostCompute(taskId, statusCause);
-    }
-
-    private static void exitPostCompute(String taskId, ReplicateStatusCause statusCause) {
-        boolean exitMessageTransmitted = true;
-        if (statusCause != null) {
-            exitMessageTransmitted = sendExitMessageToHost(taskId, statusCause);
+        try {
+            FeignBuilder
+                    .createBuilder(Logger.Level.FULL)
+                    .target(WorkerApiClient.class, "http://" + WORKER_HOST)
+                    .sendExitCauseForPosComputeStage(chainTaskId,
+                            new ExitMessage(exitCause));
+            System.exit(1);
+        } catch (FeignException e) {
+            log.error("Failed to report exitCause [exitCause:{}]", exitCause, e);
+            System.exit(2);
         }
-
-        int exitCode;
-        if (statusCause == null) {
-            // Success: no issue detected.
-            exitCode = 0;
-        } else if (exitMessageTransmitted && statusCause.equals(POST_COMPUTE_UNKNOWN_ISSUE)) {
-            // Fail: a known issue has been detected and transmitted.
-            exitCode = 1;
-        } else {
-            // Fail: an unknown issue has been detected
-            // or a known issue has not been transmitted.
-            exitCode = 2;
-        }
-
-        log.info("TEE post-compute finished");
-        System.exit(exitCode);
     }
 
     private static void runPostCompute(String taskId) throws PostComputeException {
