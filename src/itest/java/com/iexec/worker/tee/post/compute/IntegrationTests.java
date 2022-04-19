@@ -87,7 +87,7 @@ class IntegrationTests {
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() ->
                         Assertions.assertTrue(postCompute.getLogs()
-                                .contains("TEE post-compute finished")));
+                                .contains("TEE post-compute completed")));
     }
 
 }
