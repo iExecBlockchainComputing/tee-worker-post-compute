@@ -18,5 +18,5 @@ buildJavaProject(
 sconeBuildUnlocked(
         nativeImage:     "nexus.iex.ec/$repositoryName:$buildInfo.shortCommit",
         imageName:       repositoryName,
-        imageTag:        buildInfo.imageTag
+        imageTag:        buildInfo.imageTag,
         sconifyArgsPath: './docker/sconify.args')
