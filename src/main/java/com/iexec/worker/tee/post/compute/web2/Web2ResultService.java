@@ -43,7 +43,7 @@ public class Web2ResultService {
             fileToUpload = inDataFilePath;
         } else {
             log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
-            String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY, POST_COMPUTE_MISSING_ENCRYPTION_PUBLIC_KEY);
+            String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY, POST_COMPUTE_ENCRYPTION_PUBLIC_KEY_MISSING);
             String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
             fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
         }
@@ -61,7 +61,7 @@ public class Web2ResultService {
         log.info("Upload stage started");
         String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
         String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
-        String storageToken = EnvUtils.getEnvVarOrThrow(RESULT_STORAGE_TOKEN, POST_COMPUTE_MISSING_STORAGE_TOKEN);
+        String storageToken = EnvUtils.getEnvVarOrThrow(RESULT_STORAGE_TOKEN, POST_COMPUTE_STORAGE_TOKEN_MISSING);
 
         String resultLink = "";
         switch (storageProvider) {
