@@ -22,8 +22,8 @@ import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_MISSING_TASK_ID;
-import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_UNKNOWN_ISSUE;
+import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_TASK_ID_MISSING;
+import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_FAILED_UNKNOWN_ISSUE;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
 import static com.iexec.worker.tee.post.compute.worker.WorkerApiManager.getWorkerApiClient;
 
@@ -45,7 +45,7 @@ public class PostComputeAppRunner {
         Integer exitCode = null;
 
         try {
-            chainTaskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_MISSING_TASK_ID);
+            chainTaskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_TASK_ID_MISSING);
         } catch (PostComputeException e) {
             log.error("TEE post-compute cannot go further without taskID context");
             exitCode = 3;
@@ -63,7 +63,7 @@ public class PostComputeAppRunner {
                                 "[errorMessage:{}]",
                         e.getStatusCause(), e);
             } catch (Exception e) {
-                exitCause = POST_COMPUTE_UNKNOWN_ISSUE;
+                exitCause = POST_COMPUTE_FAILED_UNKNOWN_ISSUE;
                 log.error("TEE post-compute failed without explicit exitCause", e);
             }
         }

@@ -73,7 +73,7 @@ public class UploaderService {
 
         log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}, status:{}]",
                 taskId, response.getStatusCode());
-        throw new PostComputeException(POST_COMPUTE_IPFS_UPLOAD_RAILED);
+        throw new PostComputeException(POST_COMPUTE_IPFS_UPLOAD_FAILED);
 
     }
 
