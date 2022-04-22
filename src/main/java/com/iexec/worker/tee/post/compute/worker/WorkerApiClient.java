@@ -24,8 +24,8 @@ import feign.RequestLine;
 public interface WorkerApiClient {
 
     @RequestLine("POST /compute/post/{chainTaskId}/exit")
-    void sendExitCauseForPosComputeStage(@Param("chainTaskId") String chainTaskId,
-                                         ExitMessage exitMessage);
+    void sendExitCauseForPostComputeStage(@Param("chainTaskId") String chainTaskId,
+                                          ExitMessage exitMessage);
 
     @RequestLine("POST /compute/post/{chainTaskId}/computed")
     void sendComputedFileToHost(@Param("chainTaskId") String chainTaskId,

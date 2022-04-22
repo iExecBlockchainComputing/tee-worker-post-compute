@@ -71,7 +71,7 @@ public class PostComputeAppRunner {
         if (exitCode == null) {
             try {
                 getWorkerApiClient()
-                        .sendExitCauseForPosComputeStage(chainTaskId,
+                        .sendExitCauseForPostComputeStage(chainTaskId,
                                 new ExitMessage(exitCause));
                 exitCode = 1;
             } catch (FeignException e) {

@@ -113,7 +113,7 @@ class PostComputeAppRunnerTests {
 
         WorkerApiClient workerApiClient = mock(WorkerApiClient.class);
         doThrow(mock(FeignException.NotFound.class))
-                .when(workerApiClient).sendExitCauseForPosComputeStage(eq(CHAIN_TASK_ID), any());
+                .when(workerApiClient).sendExitCauseForPostComputeStage(eq(CHAIN_TASK_ID), any());
 
         when(postComputeAppRunner.createPostComputeApp(CHAIN_TASK_ID)).thenReturn(postComputeApp);
         try (MockedStatic<WorkerApiManager> workerApiManager = Mockito.mockStatic(WorkerApiManager.class)) {
