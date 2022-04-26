@@ -25,35 +25,36 @@ import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
 
 public class PostComputeApp {
+    private final FlowService flowService;
+    private final Web2ResultService web2ResultService;
     private final String chainTaskId;
 
     public PostComputeApp(String chainTaskId) {
+        this.flowService = new FlowService();
+        this.web2ResultService = new Web2ResultService();
+        this.chainTaskId = chainTaskId;
+    }
+
+    public PostComputeApp(FlowService flowService,
+                          Web2ResultService web2ResultService,
+                          String chainTaskId) {
+        this.flowService = flowService;
+        this.web2ResultService = web2ResultService;
         this.chainTaskId = chainTaskId;
     }
 
     public void runPostCompute() throws PostComputeException {
         boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
 
-        final FlowService flowService = createFlowService();
-
         ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
 
         flowService.buildResultDigestInComputedFile(computedFile, shouldCallback);
 
         if (!shouldCallback) {
-            final Web2ResultService web2ResultService = createWeb2ResultService();
             web2ResultService.encryptAndUploadResult(chainTaskId);
         }
 
         flowService.signComputedFile(computedFile);
         flowService.sendComputedFileToHost(computedFile);
-    }
-
-    FlowService createFlowService() {
-        return new FlowService();
-    }
-
-    Web2ResultService createWeb2ResultService() {
-        return new Web2ResultService();
     }
 }

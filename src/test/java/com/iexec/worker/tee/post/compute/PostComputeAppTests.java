@@ -21,6 +21,8 @@ import com.iexec.worker.tee.post.compute.worflow.FlowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -37,23 +39,23 @@ import static org.mockito.Mockito.*;
 class PostComputeAppTests {
     private static final String CHAIN_TASK_ID = "0x0";
 
-    @Spy
-    PostComputeApp postComputeApp = new PostComputeApp(CHAIN_TASK_ID);
+    @Mock
+    FlowService flowService;
+
+    @Mock
+    Web2ResultService web2ResultService;
+
+    PostComputeApp postComputeApp;
 
     @BeforeEach
     void openMocks() {
         MockitoAnnotations.openMocks(this);
+        postComputeApp = spy(new PostComputeApp(flowService, web2ResultService, CHAIN_TASK_ID));
     }
 
     @Test
     void postComputeWithCallbackSuccess(EnvironmentVariables environment) {
         environment.set(RESULT_STORAGE_CALLBACK, "yes");
-
-        FlowService flowService = mock(FlowService.class);
-        Web2ResultService web2ResultService = mock(Web2ResultService.class);
-
-        when(postComputeApp.createFlowService()).thenReturn(flowService);
-        when(postComputeApp.createWeb2ResultService()).thenReturn(web2ResultService);
 
         assertDoesNotThrow(postComputeApp::runPostCompute);
     }
@@ -62,20 +64,11 @@ class PostComputeAppTests {
     void postComputeWithoutCallbackSuccess(EnvironmentVariables environment) {
         environment.set(RESULT_STORAGE_CALLBACK, "no");
 
-        FlowService flowService = mock(FlowService.class);
-        Web2ResultService web2ResultService = mock(Web2ResultService.class);
-
-        when(postComputeApp.createFlowService()).thenReturn(flowService);
-        when(postComputeApp.createWeb2ResultService()).thenReturn(web2ResultService);
-
         assertDoesNotThrow(postComputeApp::runPostCompute);
     }
 
     @Test
     void postComputeFailedSinceReadComputedFileFailed() throws PostComputeException {
-        FlowService flowService = mock(FlowService.class);
-
-        when(postComputeApp.createFlowService()).thenReturn(flowService);
         when(flowService.readComputedFile(CHAIN_TASK_ID))
                 .thenThrow(new PostComputeException(POST_COMPUTE_COMPUTED_FILE_NOT_FOUND));
 
@@ -85,9 +78,6 @@ class PostComputeAppTests {
 
     @Test
     void postComputeFailedSinceBuildResultDigestInComputedFileFailed() throws PostComputeException {
-        FlowService flowService = mock(FlowService.class);
-
-        when(postComputeApp.createFlowService()).thenReturn(flowService);
         doThrow(new PostComputeException(POST_COMPUTE_RESULT_DIGEST_COMPUTATION_FAILED))
                 .when(flowService).buildResultDigestInComputedFile(any(), anyBoolean());
 
