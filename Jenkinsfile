@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@1.7.1') _
+@Library('global-jenkins-library@1.9.0') _
 
 String repositoryName = 'tee-worker-post-compute'
 
@@ -15,8 +15,8 @@ buildJavaProject(
         preProductionVisibility: 'docker.io',
         productionVisibility: 'docker.io')
 
-sconeBuildAllTee(
-        buildInfo: buildInfo,
-        nativeImage: 'nexus.iex.ec/' + repositoryName + ':' + buildInfo.shortCommit,
-        targetImageRepositoryName: repositoryName,
+sconeBuildUnlocked(
+        nativeImage:     "nexus.iex.ec/$repositoryName:$buildInfo.shortCommit",
+        imageName:       repositoryName,
+        imageTag:        buildInfo.imageTag,
         sconifyArgsPath: './docker/sconify.args')
