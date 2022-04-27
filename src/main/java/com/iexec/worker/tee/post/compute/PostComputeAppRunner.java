@@ -41,31 +41,30 @@ public class PostComputeAppRunner {
         log.info("Tee worker post-compute started");
 
         String chainTaskId = null;
-        ReplicateStatusCause exitCause = null;
-        Integer exitCode = null;
 
         try {
             chainTaskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_TASK_ID_MISSING);
         } catch (PostComputeException e) {
             log.error("TEE post-compute cannot go further without taskID context");
-            exitCode = 3;
+            System.exit(3);
         }
 
-        if (exitCode == null) {
-            try {
-                final PostComputeApp postComputeApp = createPostComputeApp(chainTaskId);
-                postComputeApp.runPostCompute();
-                log.info("TEE post-compute completed");
-                exitCode = 0;
-            } catch(PostComputeException e) {
-                exitCause = e.getStatusCause();
-                log.error("TEE post-compute failed with a known exitCause " +
-                                "[errorMessage:{}]",
-                        e.getStatusCause(), e);
-            } catch (Exception e) {
-                exitCause = POST_COMPUTE_FAILED_UNKNOWN_ISSUE;
-                log.error("TEE post-compute failed without explicit exitCause", e);
-            }
+        Integer exitCode = null;
+        ReplicateStatusCause exitCause = null;
+
+        try {
+            final PostComputeApp postComputeApp = createPostComputeApp(chainTaskId);
+            postComputeApp.runPostCompute();
+            log.info("TEE post-compute completed");
+            exitCode = 0;
+        } catch(PostComputeException e) {
+            exitCause = e.getStatusCause();
+            log.error("TEE post-compute failed with a known exitCause " +
+                            "[errorMessage:{}]",
+                    e.getStatusCause(), e);
+        } catch (Exception e) {
+            exitCause = POST_COMPUTE_FAILED_UNKNOWN_ISSUE;
+            log.error("TEE post-compute failed without explicit exitCause", e);
         }
 
         if (exitCode == null) {
