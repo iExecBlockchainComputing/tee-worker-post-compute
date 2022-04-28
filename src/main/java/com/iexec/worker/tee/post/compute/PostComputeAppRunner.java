@@ -49,9 +49,7 @@ public class PostComputeAppRunner {
             System.exit(3);
         }
 
-        Integer exitCode = null;
         ReplicateStatusCause exitCause = null;
-
         try {
             final PostComputeApp postComputeApp = createPostComputeApp(chainTaskId);
             postComputeApp.runPostCompute();
@@ -71,13 +69,11 @@ public class PostComputeAppRunner {
             getWorkerApiClient()
                     .sendExitCauseForPostComputeStage(chainTaskId,
                             new ExitMessage(exitCause));
-            exitCode = 1;
+            System.exit(1);
         } catch (FeignException e) {
-            exitCode = 2;
             log.error("Failed to report exitCause [exitCause:{}]", exitCause, e);
+            System.exit(2);
         }
-
-        System.exit(exitCode);
     }
 
     PostComputeApp createPostComputeApp(String chainTaskId) {
