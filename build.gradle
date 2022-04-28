@@ -97,7 +97,7 @@ jacocoTestReport {
 tasks.test.finalizedBy    tasks.jacocoTestReport
 tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
-def mainClass = 'com.iexec.worker.tee.post.compute.App'
+def mainClass = 'com.iexec.worker.tee.post.compute.Main'
 
 application {
     mainClassName = mainClass
