@@ -17,7 +17,7 @@ ext {
     // versions
     testContainersVersion = '1.16.2'
     mockitoVersion = '4.4.0'
-    systemSubsVersion = '2.0.1'
+    systemStubsVersion = '2.0.1'
 }
 
 if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
@@ -63,8 +63,8 @@ dependencies {
 
     // test
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
-    testImplementation "uk.org.webcompere:system-stubs-core:$systemSubsVersion"    // activates env var setting
-    testImplementation "uk.org.webcompere:system-stubs-jupiter:$systemSubsVersion" // activates env var setting
+    testImplementation "uk.org.webcompere:system-stubs-core:$systemStubsVersion"    // activates env var setting
+    testImplementation "uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion" // activates env var setting
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
     testImplementation "org.mockito:mockito-inline:$mockitoVersion" // activates mocking final classes/methods
