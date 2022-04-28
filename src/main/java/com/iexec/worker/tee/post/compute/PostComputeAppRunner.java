@@ -56,7 +56,7 @@ public class PostComputeAppRunner {
             final PostComputeApp postComputeApp = createPostComputeApp(chainTaskId);
             postComputeApp.runPostCompute();
             log.info("TEE post-compute completed");
-            exitCode = 0;
+            System.exit(0);
         } catch(PostComputeException e) {
             exitCause = e.getStatusCause();
             log.error("TEE post-compute failed with a known exitCause " +
@@ -67,16 +67,14 @@ public class PostComputeAppRunner {
             log.error("TEE post-compute failed without explicit exitCause", e);
         }
 
-        if (exitCode == null) {
-            try {
-                getWorkerApiClient()
-                        .sendExitCauseForPostComputeStage(chainTaskId,
-                                new ExitMessage(exitCause));
-                exitCode = 1;
-            } catch (FeignException e) {
-                exitCode = 2;
-                log.error("Failed to report exitCause [exitCause:{}]", exitCause, e);
-            }
+        try {
+            getWorkerApiClient()
+                    .sendExitCauseForPostComputeStage(chainTaskId,
+                            new ExitMessage(exitCause));
+            exitCode = 1;
+        } catch (FeignException e) {
+            exitCode = 2;
+            log.error("Failed to report exitCause [exitCause:{}]", exitCause, e);
         }
 
         System.exit(exitCode);
