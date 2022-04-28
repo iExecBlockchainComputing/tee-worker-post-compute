@@ -1,0 +1,16 @@
+{
+  "request": {
+    "url": "/post-compute/0x0000000000000000000000000000000000000000000000000000000000000001/exit",
+    "method": "POST",
+    "bodyPatterns": [
+      {
+        "equalToJson": {
+          "message": "SUCCESS"
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200
+  }
+}

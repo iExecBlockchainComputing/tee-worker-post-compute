@@ -16,15 +16,20 @@
 
 package com.iexec.worker.tee.post.compute;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import com.iexec.common.replicate.ReplicateStatusCause;
+import lombok.Getter;
 
-import static org.junit.jupiter.api.Assertions.*;
+public class PostComputeException extends Exception {
 
-class AppTests {
+    @Getter
+    private final ReplicateStatusCause statusCause;
 
-    @Test
-    void main() {
-        Assertions.assertTrue(true);
+    public PostComputeException(ReplicateStatusCause statusCause) {
+        this(statusCause, statusCause.name());
+    }
+
+    public PostComputeException(ReplicateStatusCause statusCause, String message) {
+        super(message);
+        this.statusCause = statusCause;
     }
 }
