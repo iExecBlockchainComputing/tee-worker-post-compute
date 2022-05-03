@@ -32,4 +32,9 @@ public class PostComputeException extends Exception {
         super(message);
         this.statusCause = statusCause;
     }
+
+    public PostComputeException(ReplicateStatusCause statusCause, String message, Throwable cause) {
+        super(message, cause);
+        this.statusCause = statusCause;
+    }
 }

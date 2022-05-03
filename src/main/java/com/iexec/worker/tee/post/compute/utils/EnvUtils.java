@@ -18,8 +18,7 @@ public class EnvUtils {
     public static String getEnvVarOrThrow(String envVarName, ReplicateStatusCause statusCauseIfMissing) throws PostComputeException {
         String envVar = System.getenv(envVarName);
         if (envVar == null || envVar.isEmpty()) {
-            log.error("Required env var is empty [name:{}]", envVarName);
-            throw new PostComputeException(statusCauseIfMissing);
+            throw new PostComputeException(statusCauseIfMissing, "Required env var is empty [name:" + envVar + "]");
         }
         return envVar;
     }

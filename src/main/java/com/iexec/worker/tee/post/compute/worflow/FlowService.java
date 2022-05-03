@@ -108,9 +108,11 @@ public class FlowService {
         try {
             workerApiClient.sendComputedFileToHost(computedFile.getTaskId(), computedFile);
         } catch (FeignException e) {
-            log.error("Send ComputedFile stage failed [taskId:{}]",
-                    computedFile.getTaskId(), e);
-            throw new PostComputeException(POST_COMPUTE_SEND_COMPUTED_FILE_FAILED);
+            throw new PostComputeException(
+                    POST_COMPUTE_SEND_COMPUTED_FILE_FAILED,
+                    "Send ComputedFile stage failed [taskId:" + computedFile.getTaskId() + "]",
+                    e
+            );
         }
 
         log.info("Send ComputedFile stage completed");
