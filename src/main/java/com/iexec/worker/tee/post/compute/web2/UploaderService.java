@@ -50,7 +50,7 @@ public class UploaderService {
         } catch (IOException e) {
             throw new PostComputeException(
                     POST_COMPUTE_RESULT_FILE_NOT_FOUND,
-                    "Can't uploadToIpfsWithIexecProxy (missing filePath to upload) [taskId:" + taskId + ", fileToUploadPath:" + fileToUploadPath + "]");
+                    String.format("Can't uploadToIpfsWithIexecProxy (missing filePath to upload) [taskId:%s, fileToUploadPath:%s]", taskId, fileToUploadPath));
         }
 
         ResultModel resultModel = ResultModel.builder()
@@ -72,7 +72,7 @@ public class UploaderService {
 
         throw new PostComputeException(
                 POST_COMPUTE_IPFS_UPLOAD_FAILED,
-                "Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:" + taskId + ", status:" + response.getStatusCode() + "]"
+                String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", taskId, response.getStatusCode())
         );
 
     }
