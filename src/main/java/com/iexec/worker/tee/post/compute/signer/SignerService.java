@@ -20,8 +20,10 @@ public class SignerService {
                 CredentialsUtils.getAddress(enclaveChallengePrivateKey));
 
         if (!isSignatureValid) {
-            log.error("Failed to verify TeeEnclaveChallenge signature (exiting)");
-            throw new PostComputeException(POST_COMPUTE_INVALID_TEE_SIGNATURE);
+            throw new PostComputeException(
+                    POST_COMPUTE_INVALID_TEE_SIGNATURE,
+                    "Failed to verify TeeEnclaveChallenge signature (exiting)"
+            );
         }
 
         return enclaveChallengeSignature.getValue();

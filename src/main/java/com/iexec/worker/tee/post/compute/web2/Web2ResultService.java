@@ -26,8 +26,7 @@ public class Web2ResultService {
         // save zip file to the protected region /post-compute-tmp (temporarily)
         String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_POST_COMPUTE_TMP);
         if (iexecOutZipPath.isEmpty()) {
-            log.error("zipIexecOut stage failed");
-            throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED);
+            throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED, "zipIexecOut stage failed");
         }
         String resultPath = eventuallyEncryptResult(iexecOutZipPath);
         String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
@@ -49,8 +48,7 @@ public class Web2ResultService {
         }
 
         if (fileToUpload.isEmpty()) {
-            log.error("Encryption stage failed");
-            throw new PostComputeException(POST_COMPUTE_ENCRYPTION_FAILED);
+            throw new PostComputeException(POST_COMPUTE_ENCRYPTION_FAILED, "Encryption stage failed");
         } else {
             log.info("Encryption stage completed");
         }

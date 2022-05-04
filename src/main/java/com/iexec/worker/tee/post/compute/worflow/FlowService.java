@@ -31,9 +31,7 @@ public class FlowService {
 
         ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, FileHelper.SLASH_IEXEC_OUT);
         if (computedFile == null) {
-            final String cause = "computed.json missing";
-            log.error("ReadComputedFile failed (" + cause + ")");
-            throw new PostComputeException(POST_COMPUTE_COMPUTED_FILE_NOT_FOUND, cause);
+            throw new PostComputeException(POST_COMPUTE_COMPUTED_FILE_NOT_FOUND, "computed.json missing");
         }
 
         log.info("ReadComputedFile stage completed");
@@ -55,9 +53,7 @@ public class FlowService {
         }
 
         if (resultDigest.isEmpty()) {
-            final String cause = "empty resultDigest";
-            log.error("ResultDigest stage failed (" + cause + ")");
-            throw new PostComputeException(POST_COMPUTE_RESULT_DIGEST_COMPUTATION_FAILED, cause);
+            throw new PostComputeException(POST_COMPUTE_RESULT_DIGEST_COMPUTATION_FAILED, "empty resultDigest");
         }
 
         computedFile.setResultDigest(resultDigest);
@@ -108,9 +104,11 @@ public class FlowService {
         try {
             workerApiClient.sendComputedFileToHost(computedFile.getTaskId(), computedFile);
         } catch (FeignException e) {
-            log.error("Send ComputedFile stage failed [taskId:{}]",
-                    computedFile.getTaskId(), e);
-            throw new PostComputeException(POST_COMPUTE_SEND_COMPUTED_FILE_FAILED);
+            throw new PostComputeException(
+                    POST_COMPUTE_SEND_COMPUTED_FILE_FAILED,
+                    String.format("Send ComputedFile stage failed [taskId:%s]", computedFile.getTaskId()),
+                    e
+            );
         }
 
         log.info("Send ComputedFile stage completed");
