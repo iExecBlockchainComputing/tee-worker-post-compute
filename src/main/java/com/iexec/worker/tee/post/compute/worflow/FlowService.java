@@ -2,7 +2,6 @@ package com.iexec.worker.tee.post.compute.worflow;
 
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.tee.TeeEnclaveChallengeSignature;
-import com.iexec.common.utils.FileHelper;
 import com.iexec.common.utils.HashUtils;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
@@ -29,7 +28,7 @@ public class FlowService {
     public ComputedFile readComputedFile(String taskId) throws PostComputeException {
         log.info("ReadComputedFile stage started");
 
-        ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, FileHelper.SLASH_IEXEC_OUT);
+        ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, IexecFileHelper.SLASH_IEXEC_OUT);
         if (computedFile == null) {
             throw new PostComputeException(POST_COMPUTE_COMPUTED_FILE_NOT_FOUND, "computed.json missing");
         }

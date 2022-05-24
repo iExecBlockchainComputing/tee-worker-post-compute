@@ -1,6 +1,6 @@
 package com.iexec.worker.tee.post.compute.web2;
 
-import com.iexec.common.utils.FileHelper;
+import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.tee.post.compute.PostComputeException;
 import com.iexec.worker.tee.post.compute.utils.EnvUtils;
@@ -24,7 +24,7 @@ public class Web2ResultService {
      * */
     public void encryptAndUploadResult(String taskId) throws PostComputeException {
         // save zip file to the protected region /post-compute-tmp (temporarily)
-        String iexecOutZipPath = ResultUtils.zipIexecOut(FileHelper.SLASH_IEXEC_OUT, SLASH_POST_COMPUTE_TMP);
+        String iexecOutZipPath = ResultUtils.zipIexecOut(IexecFileHelper.SLASH_IEXEC_OUT, SLASH_POST_COMPUTE_TMP);
         if (iexecOutZipPath.isEmpty()) {
             throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED, "zipIexecOut stage failed");
         }

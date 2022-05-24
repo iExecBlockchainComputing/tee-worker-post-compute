@@ -1,7 +1,6 @@
 package com.iexec.worker.tee.post.compute.worflow;
 
 import com.iexec.common.result.ComputedFile;
-import com.iexec.common.utils.FileHelper;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.tee.post.compute.PostComputeException;
@@ -41,7 +40,7 @@ class FlowServiceTests {
     @Test
     void shouldReadComputedFile() {
         try (MockedStatic<IexecFileHelper> iexecFileHelper = Mockito.mockStatic(IexecFileHelper.class)) {
-            iexecFileHelper.when(() -> IexecFileHelper.readComputedFile(CHAIN_TASK_ID, FileHelper.SLASH_IEXEC_OUT))
+            iexecFileHelper.when(() -> IexecFileHelper.readComputedFile(CHAIN_TASK_ID, IexecFileHelper.SLASH_IEXEC_OUT))
                     .thenReturn(new ComputedFile());
 
             assertDoesNotThrow(() -> flowService.readComputedFile(CHAIN_TASK_ID));
@@ -51,7 +50,7 @@ class FlowServiceTests {
     @Test
     void shouldNotReadComputedFile() {
         try (MockedStatic<IexecFileHelper> iexecFileHelper = Mockito.mockStatic(IexecFileHelper.class)) {
-            iexecFileHelper.when(() -> IexecFileHelper.readComputedFile(CHAIN_TASK_ID, FileHelper.SLASH_IEXEC_OUT))
+            iexecFileHelper.when(() -> IexecFileHelper.readComputedFile(CHAIN_TASK_ID, IexecFileHelper.SLASH_IEXEC_OUT))
                     .thenReturn(null);
 
             final PostComputeException exception = assertThrows(PostComputeException.class, () -> flowService.readComputedFile(CHAIN_TASK_ID));
