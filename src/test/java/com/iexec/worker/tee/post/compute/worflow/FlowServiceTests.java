@@ -4,16 +4,14 @@ import com.iexec.common.result.ComputedFile;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.tee.post.compute.PostComputeException;
+import com.iexec.worker.tee.post.compute.signer.SignerService;
 import com.iexec.worker.tee.post.compute.worker.WorkerApiClient;
 import com.iexec.worker.tee.post.compute.worker.WorkerApiManager;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.*;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
@@ -21,14 +19,17 @@ import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SystemStubsExtension.class)
 class FlowServiceTests {
     private static final String CHAIN_TASK_ID = "0x0";
 
+    @Mock
+    SignerService signerService;
+
     @Spy
+    @InjectMocks
     FlowService flowService;
 
     @BeforeEach
@@ -122,9 +123,12 @@ class FlowServiceTests {
 
     // region signComputedFile
     @Test
-    void shouldSignComputedFile(EnvironmentVariables environment) {
+    void shouldSignComputedFile(EnvironmentVariables environment) throws PostComputeException {
+        final String privateKey = "0xdd3b993ec21c71c1f6d63a5240850e0d4d8dd83ff70d29e49247958548c1d479";
+        final String signature = "enclaveSignature";
+
         environment.set(RESULT_SIGN_WORKER_ADDRESS, "0x250a3919982ca7CEF58960fF716122dbb4514036");
-        environment.set(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, "0xdd3b993ec21c71c1f6d63a5240850e0d4d8dd83ff70d29e49247958548c1d479");
+        environment.set(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, privateKey);
 
         final ComputedFile computedFile = ComputedFile
                 .builder()
@@ -132,9 +136,11 @@ class FlowServiceTests {
                 .resultDigest("0x123")
                 .build();
 
+        when(signerService.signEnclaveChallenge(any(), eq(privateKey))).thenReturn(signature);
+
         assertDoesNotThrow(() -> flowService.signComputedFile(computedFile));
         assertNotNull(computedFile.getEnclaveSignature());
-        assertEquals("0xfcc6bce5eb04284c2eb1ed14405b943574343b1abda33628fbf94a374b18dd16541c6ebf63c6943d8643ff03c7aa17f1cb17b0a8d297d0fd95fc914bdd0e85f81b", computedFile.getEnclaveSignature());
+        assertEquals(signature, computedFile.getEnclaveSignature());
     }
 
     @Test

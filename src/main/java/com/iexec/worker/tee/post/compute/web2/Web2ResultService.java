@@ -19,6 +19,20 @@ import static com.iexec.common.worker.result.ResultUtils.*;
 public class Web2ResultService {
 
     public static final String SLASH_POST_COMPUTE_TMP = File.separator + "post-compute-tmp";
+
+    private final UploaderService uploaderService;
+    private final EncryptionService encryptionService;
+
+    public Web2ResultService() {
+        this.uploaderService = new UploaderService();
+        this.encryptionService = new EncryptionService();
+    }
+
+    public Web2ResultService(UploaderService uploaderService, EncryptionService encryptionService) {
+        this.uploaderService = uploaderService;
+        this.encryptionService = encryptionService;
+    }
+
     /*
      * Manager
      * */
@@ -29,10 +43,10 @@ public class Web2ResultService {
             throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED, "zipIexecOut stage failed");
         }
         String resultPath = eventuallyEncryptResult(iexecOutZipPath);
-        String resultLink = uploadResult(taskId, resultPath); //TODO Put resultLink somewhere
+        uploadResult(taskId, resultPath); //TODO Put result somewhere
     }
 
-    private String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
+    String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
         log.info("Encryption stage started");
         String fileToUpload;
         boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
@@ -44,7 +58,7 @@ public class Web2ResultService {
             log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
             String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY, POST_COMPUTE_ENCRYPTION_PUBLIC_KEY_MISSING);
             String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
-            fileToUpload = EncryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
+            fileToUpload = encryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
         }
 
         if (fileToUpload.isEmpty()) {
@@ -55,7 +69,7 @@ public class Web2ResultService {
         return fileToUpload;
     }
 
-    private String uploadResult(String taskId, String fileToUploadPath) throws PostComputeException {
+    String uploadResult(String taskId, String fileToUploadPath) throws PostComputeException {
         log.info("Upload stage started");
         String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
         String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
@@ -66,12 +80,12 @@ public class Web2ResultService {
             case DROPBOX_RESULT_STORAGE_PROVIDER:
                 log.info("Upload stage mode: DROPBOX_STORAGE");
                 String remoteFilename = taskId + ".zip";
-                resultLink = UploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFilename);
+                resultLink = uploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFilename);
                 break;
             case IPFS_RESULT_STORAGE_PROVIDER:
             default:
                 log.info("Upload stage mode: IPFS_STORAGE");
-                resultLink = UploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
+                resultLink = uploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
                 break;
         }
 

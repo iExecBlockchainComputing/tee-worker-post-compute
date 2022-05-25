@@ -13,7 +13,7 @@ import static com.iexec.common.utils.SignatureUtils.signMessageHashAndGetSignatu
 public class SignerService {
 
 
-    public static String signEnclaveChallenge(String messageHash, String enclaveChallengePrivateKey) throws PostComputeException {
+    public String signEnclaveChallenge(String messageHash, String enclaveChallengePrivateKey) throws PostComputeException {
         Signature enclaveChallengeSignature = signMessageHashAndGetSignature(messageHash, enclaveChallengePrivateKey);
 
         boolean isSignatureValid = isExpectedSignerOnSignedMessageHash(messageHash, enclaveChallengeSignature,

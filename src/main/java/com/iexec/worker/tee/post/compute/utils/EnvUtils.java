@@ -7,6 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EnvUtils {
 
+    private EnvUtils() {
+
+    }
+
     public static String getEnvVar(String envVarName) {
         String envVar = System.getenv(envVarName);
         if (envVar == null || envVar.isEmpty()) {
