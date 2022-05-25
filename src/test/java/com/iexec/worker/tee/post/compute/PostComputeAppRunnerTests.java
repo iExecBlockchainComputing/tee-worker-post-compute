@@ -33,7 +33,6 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static uk.org.webcompere.systemstubs.SystemStubs.catchSystemExit;
 
 @ExtendWith(SystemStubsExtension.class)
 class PostComputeAppRunnerTests {
@@ -49,7 +48,7 @@ class PostComputeAppRunnerTests {
 
     @Test
     void noTaskId() throws Exception {
-        final int exitStatus = catchSystemExit(postComputeAppRunner::start);
+        final int exitStatus = postComputeAppRunner.start();
         assertEquals(3, exitStatus);
     }
 
@@ -60,7 +59,7 @@ class PostComputeAppRunnerTests {
         PostComputeApp postComputeApp = mock(PostComputeApp.class);
         when(postComputeAppRunner.createPostComputeApp(CHAIN_TASK_ID)).thenReturn(postComputeApp);
 
-        final int exitStatus = catchSystemExit(postComputeAppRunner::start);
+        final int exitStatus = postComputeAppRunner.start();
 
         assertEquals(0, exitStatus);
     }
@@ -80,7 +79,7 @@ class PostComputeAppRunnerTests {
         try (MockedStatic<WorkerApiManager> workerApiManager = Mockito.mockStatic(WorkerApiManager.class)) {
             workerApiManager.when(WorkerApiManager::getWorkerApiClient)
                     .thenReturn(workerApiClient);
-            final int exitStatus = catchSystemExit(postComputeAppRunner::start);
+            final int exitStatus = postComputeAppRunner.start();
             assertEquals(1, exitStatus);
         }
     }
@@ -98,7 +97,7 @@ class PostComputeAppRunnerTests {
         try (MockedStatic<WorkerApiManager> workerApiManager = Mockito.mockStatic(WorkerApiManager.class)) {
             workerApiManager.when(WorkerApiManager::getWorkerApiClient)
                     .thenReturn(workerApiClient);
-            final int exitStatus = catchSystemExit(postComputeAppRunner::start);
+            final int exitStatus = postComputeAppRunner.start();
             assertEquals(1, exitStatus);
         }
     }
@@ -119,7 +118,7 @@ class PostComputeAppRunnerTests {
         try (MockedStatic<WorkerApiManager> workerApiManager = Mockito.mockStatic(WorkerApiManager.class)) {
             workerApiManager.when(WorkerApiManager::getWorkerApiClient)
                     .thenReturn(workerApiClient);
-            final int exitStatus = catchSystemExit(postComputeAppRunner::start);
+            final int exitStatus = postComputeAppRunner.start();
             assertEquals(2, exitStatus);
         }
     }
