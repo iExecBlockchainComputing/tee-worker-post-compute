@@ -28,7 +28,7 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
-        url "https://nexus.iex.ec/repository/maven-public/"
+        url "https://nexus.intra.iex.ec/repository/maven-public/"
     }
     maven { url 'https://jitpack.io' }
 }
@@ -136,7 +136,7 @@ shadowJar {
 }
 
 docker {
-    name 'nexus.iex.ec/' + rootProject.name + ':dev'
+    name 'nexus.intra.iex.ec/' + rootProject.name + ':dev'
     dockerfile file('docker/Dockerfile.local')
     files('build/libs/' + fatJar)
     buildArgs([JAR_PATH: fatJar ])
