@@ -8,19 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Main {
 
-    static PostComputeAppRunner postComputeAppRunner;
-
     private Main() {
     }
 
     public static void main(String[] args) {
-        final int exitCode = getPostComputeAppRunner().start();
-        System.exit(exitCode);
+        System.exit(new PostComputeAppRunner().start());
     }
 
-    static PostComputeAppRunner getPostComputeAppRunner() {
-        return postComputeAppRunner == null
-                ? new PostComputeAppRunner()
-                : postComputeAppRunner;
-    }
 }
