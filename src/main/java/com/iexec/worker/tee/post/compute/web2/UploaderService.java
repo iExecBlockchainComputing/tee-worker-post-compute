@@ -8,7 +8,9 @@ import com.iexec.worker.tee.post.compute.PostComputeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -64,17 +66,22 @@ public class UploaderService {
 
         HttpEntity<ResultModel> request = new HttpEntity<>(resultModel, headers);
 
-        ResponseEntity<String> response = new RestTemplate().postForEntity(baseUrl, request, String.class);
+        HttpStatus statusCode = null;
+        try {
+            ResponseEntity<String> response = new RestTemplate().postForEntity(baseUrl, request, String.class);
+            statusCode = response.getStatusCode();
 
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response.getBody();
+            if (statusCode.is2xxSuccessful()) {
+                return response.getBody();
+            }
+        } catch (HttpClientErrorException e) {
+            log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}, status:{}]", taskId, e.getStatusCode(), e);
         }
 
         throw new PostComputeException(
                 POST_COMPUTE_IPFS_UPLOAD_FAILED,
-                String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", taskId, response.getStatusCode())
+                String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", taskId, statusCode)
         );
-
     }
 
 
