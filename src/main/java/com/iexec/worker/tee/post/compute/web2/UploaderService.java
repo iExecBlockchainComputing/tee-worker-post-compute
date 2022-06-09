@@ -10,7 +10,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -74,8 +74,8 @@ public class UploaderService {
             if (statusCode.is2xxSuccessful()) {
                 return response.getBody();
             }
-        } catch (HttpClientErrorException e) {
-            log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}, status:{}]", taskId, e.getStatusCode(), e);
+        } catch (RestClientException e) {
+            log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}]", taskId, e);
         }
 
         throw new PostComputeException(
