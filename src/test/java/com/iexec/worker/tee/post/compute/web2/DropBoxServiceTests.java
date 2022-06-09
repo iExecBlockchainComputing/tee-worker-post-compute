@@ -32,14 +32,14 @@ class DropBoxServiceTests {
         final DbxClientV2 client = mock(DbxClientV2.class);
         final DbxUserFilesRequests files = mock(DbxUserFilesRequests.class);
         final UploadBuilder uploadBuilder = mock(UploadBuilder.class);
-        final Metadata fileMetadata = mock(FileMetadata.class);
+        final FileMetadata fileMetadata = mock(FileMetadata.class);
 
-        doReturn(files).when(client).files();
-        doReturn(uploadBuilder).when(files).uploadBuilder(DROPBOX_PATH);
-        doReturn(uploadBuilder).when(uploadBuilder).withMode(WriteMode.ADD);
-        doReturn(uploadBuilder).when(uploadBuilder).withClientModified(any());
-        doReturn(fileMetadata).when(uploadBuilder).uploadAndFinish(any(), any());
-        doReturn(pathDisplay).when(fileMetadata).getPathDisplay();
+        when(client.files()).thenReturn(files);
+        when(files.uploadBuilder(DROPBOX_PATH)).thenReturn(uploadBuilder);
+        when(uploadBuilder.withMode(WriteMode.ADD)).thenReturn(uploadBuilder);
+        when(uploadBuilder.withClientModified(any())).thenReturn(uploadBuilder);
+        when(uploadBuilder.uploadAndFinish(any(), any())).thenReturn(fileMetadata);
+        when(fileMetadata.getPathDisplay()).thenReturn(pathDisplay);
 
         final String actualPathDisplay = assertDoesNotThrow(() -> dropBoxService.uploadFile(client, fileToUpload, DROPBOX_PATH));
         assertEquals(fileMetadata.getPathDisplay(), actualPathDisplay);
