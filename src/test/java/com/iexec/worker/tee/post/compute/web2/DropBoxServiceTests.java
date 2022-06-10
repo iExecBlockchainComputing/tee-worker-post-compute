@@ -53,11 +53,11 @@ class DropBoxServiceTests {
         final DbxUserFilesRequests files = mock(DbxUserFilesRequests.class);
         final UploadBuilder uploadBuilder = mock(UploadBuilder.class);
 
-        doReturn(files).when(client).files();
-        doReturn(uploadBuilder).when(files).uploadBuilder(DROPBOX_PATH);
-        doReturn(uploadBuilder).when(uploadBuilder).withMode(WriteMode.ADD);
-        doReturn(uploadBuilder).when(uploadBuilder).withClientModified(any());
-        doThrow(DbxException.class).when(uploadBuilder).uploadAndFinish(any(), any());
+        when(client.files()).thenReturn(files);
+        when(files.uploadBuilder(DROPBOX_PATH)).thenReturn(uploadBuilder);
+        when(uploadBuilder.withMode(WriteMode.ADD)).thenReturn(uploadBuilder);
+        when(uploadBuilder.withClientModified(any())).thenReturn(uploadBuilder);
+        when(uploadBuilder.uploadAndFinish(any(), any())).thenThrow(DbxException.class);
 
         final String actualPathDisplay = assertDoesNotThrow(() -> dropBoxService.uploadFile(client, fileToUpload, DROPBOX_PATH));
         assertEquals("", actualPathDisplay);
@@ -71,11 +71,11 @@ class DropBoxServiceTests {
         final DbxUserFilesRequests files = mock(DbxUserFilesRequests.class);
         final UploadBuilder uploadBuilder = mock(UploadBuilder.class);
 
-        doReturn(files).when(client).files();
-        doReturn(uploadBuilder).when(files).uploadBuilder(DROPBOX_PATH);
-        doReturn(uploadBuilder).when(uploadBuilder).withMode(WriteMode.ADD);
-        doReturn(uploadBuilder).when(uploadBuilder).withClientModified(any());
-        doThrow(IOException.class).when(uploadBuilder).uploadAndFinish(any(), any());
+        when(client.files()).thenReturn(files);
+        when(files.uploadBuilder(DROPBOX_PATH)).thenReturn(uploadBuilder);
+        when(uploadBuilder.withMode(WriteMode.ADD)).thenReturn(uploadBuilder);
+        when(uploadBuilder.withClientModified(any())).thenReturn(uploadBuilder);
+        when(uploadBuilder.uploadAndFinish(any(), any())).thenThrow(IOException.class);
 
         final String actualPathDisplay = assertDoesNotThrow(() -> dropBoxService.uploadFile(client, fileToUpload, DROPBOX_PATH));
         assertEquals("", actualPathDisplay);
