@@ -43,7 +43,7 @@ public class Web2ResultService {
             throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED, "zipIexecOut stage failed");
         }
         String resultPath = eventuallyEncryptResult(iexecOutZipPath);
-        uploadResult(taskId, resultPath); //TODO Put result somewhere
+        uploadResult(taskId, resultPath); //TODO Share result link to beneficiary
     }
 
     String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
