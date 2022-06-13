@@ -72,12 +72,12 @@ class UploaderServiceTests {
         final DbxUserUsersRequests users = mock(DbxUserUsersRequests.class);
         final FullAccount account = mock(FullAccount.class);
 
-        doReturn(users).when(client).users();
-        doReturn(account).when(users).getCurrentAccount();
-        doReturn(accountId).when(account).getAccountId();
+        when(client.users()).thenReturn(users);
+        when(users.getCurrentAccount()).thenReturn(account);
+        when(account.getAccountId()).thenReturn(accountId);
 
         doReturn(client).when(uploaderService).createDropboxClient(eq(DROPBOX_TOKEN), any());
-        doReturn(REMOTE_FILEPATH).when(dropBoxService).uploadFile(eq(client), any(), eq("/results/" + REMOTE_FILENAME));
+        when(dropBoxService.uploadFile(eq(client), any(), eq("/results/" + REMOTE_FILENAME))).thenReturn(REMOTE_FILEPATH);
 
         final String actualFilePath = assertDoesNotThrow(() -> uploaderService.uploadToDropBox(fileToUpload, DROPBOX_TOKEN, REMOTE_FILENAME));
         assertEquals(REMOTE_FILEPATH, actualFilePath);
@@ -99,8 +99,8 @@ class UploaderServiceTests {
         final DbxClientV2 client = mock(DbxClientV2.class);
         final DbxUserUsersRequests users = mock(DbxUserUsersRequests.class);
 
-        doReturn(users).when(client).users();
-        doThrow(DbxException.class).when(users).getCurrentAccount();
+        when(client.users()).thenReturn(users);
+        when(users.getCurrentAccount()).thenThrow(DbxException.class);
 
         doReturn(client).when(uploaderService).createDropboxClient(eq(DROPBOX_TOKEN), any());
 
@@ -125,9 +125,9 @@ class UploaderServiceTests {
         final String responseBody = "responseBody";
 
         final RestTemplate restTemplate = mock(RestTemplate.class);
-        doReturn(ResponseEntity.of(Optional.of(responseBody))).when(restTemplate).postForEntity(eq(baseUrl), any(), eq(String.class));
+        when(restTemplate.postForEntity(eq(baseUrl), any(), eq(String.class))).thenReturn(ResponseEntity.of(Optional.of(responseBody)));
 
-        doReturn(restTemplate).when(uploaderService).createRestTemplate();
+        when(uploaderService.createRestTemplate()).thenReturn(restTemplate);
 
         final String actualResponseBody = assertDoesNotThrow(() -> uploaderService.uploadToIpfsWithIexecProxy(TASK_ID, baseUrl, IPFS_TOKEN, fileToUpload));
         assertEquals(responseBody, actualResponseBody);
@@ -149,10 +149,10 @@ class UploaderServiceTests {
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
 
         final RestTemplate restTemplate = mock(RestTemplate.class);
-        final ResponseEntity<Object> response = ResponseEntity.notFound().build();
-        doReturn(response).when(restTemplate).postForEntity(eq(baseUrl), any(), eq(String.class));
+        final ResponseEntity<String> response = ResponseEntity.notFound().build();
+        when(restTemplate.postForEntity(eq(baseUrl), any(), eq(String.class))).thenReturn(response);
 
-        doReturn(restTemplate).when(uploaderService).createRestTemplate();
+        when(uploaderService.createRestTemplate()).thenReturn(restTemplate);
 
         final PostComputeException exception = assertThrows(PostComputeException.class, () -> uploaderService.uploadToIpfsWithIexecProxy(TASK_ID, baseUrl, IPFS_TOKEN, fileToUpload));
         assertEquals(POST_COMPUTE_IPFS_UPLOAD_FAILED, exception.getStatusCause());

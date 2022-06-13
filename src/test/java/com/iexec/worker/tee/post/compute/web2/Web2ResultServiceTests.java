@@ -40,12 +40,16 @@ class Web2ResultServiceTests {
 
     //region encryptAndUploadResult
     @Test
-    void shouldEncryptAndUploadResult() throws PostComputeException {
+    void shouldEncryptAndUploadResult(EnvironmentVariables environment) throws PostComputeException {
+        environment.set(
+                RESULT_STORAGE_TOKEN, "token"
+        );
+
         final String zipPath = "zipPath";
         final String resultPath = "resultPath";
 
-        doReturn(resultPath).when(web2ResultService).eventuallyEncryptResult(zipPath);
-        doReturn("").when(web2ResultService).uploadResult(TASK_ID, resultPath);
+        doReturn(resultPath).when(web2ResultService).eventuallyEncryptResult(zipPath);  // Using `doReturn().when()` to avoid nasty side effects
+        when(web2ResultService.uploadResult(TASK_ID, resultPath)).thenReturn("");
 
         try (MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
             resultUtils.when(() -> ResultUtils.zipIexecOut(any(), any()))
@@ -81,7 +85,7 @@ class Web2ResultServiceTests {
         final String inDataFilePath = "inDataFile.zip";
         final String fileToUpload = "fileToUpload.zip";
 
-        doReturn(fileToUpload).when(encryptionService).encryptData(eq(inDataFilePath), any(), eq(true));
+        when(encryptionService.encryptData(eq(inDataFilePath), any(), eq(true))).thenReturn(fileToUpload);
 
         final String actualFileToUpload = assertDoesNotThrow(() -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
         assertEquals(fileToUpload, actualFileToUpload);
@@ -123,7 +127,7 @@ class Web2ResultServiceTests {
         final String inDataFilePath = "inDataFile.zip";
         final String fileToUpload = "";
 
-        doReturn(fileToUpload).when(encryptionService).encryptData(eq(inDataFilePath), any(), eq(true));
+        when(encryptionService.encryptData(eq(inDataFilePath), any(), eq(true))).thenReturn(fileToUpload);
 
         final PostComputeException exception = assertThrows(PostComputeException.class, () -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
         assertEquals(POST_COMPUTE_ENCRYPTION_FAILED, exception.getStatusCause());
@@ -144,7 +148,7 @@ class Web2ResultServiceTests {
                 RESULT_STORAGE_TOKEN, storageToken
         );
 
-        doReturn(resultLink).when(uploaderService).uploadToDropBox(fileToUploadPath, storageToken, remoteFileName);
+        when(uploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFileName)).thenReturn(resultLink);
 
         final String actualResultLink = assertDoesNotThrow(() -> web2ResultService.uploadResult(TASK_ID, fileToUploadPath));
         assertEquals(resultLink, actualResultLink);
@@ -166,7 +170,7 @@ class Web2ResultServiceTests {
                 RESULT_STORAGE_PROXY, "storageProxy"
         );
 
-        doReturn(resultLink).when(uploaderService).uploadToDropBox(fileToUploadPath, storageToken, remoteFileName);
+        when(uploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFileName)).thenReturn(resultLink);
 
         final String actualResultLink = assertDoesNotThrow(() -> web2ResultService.uploadResult(TASK_ID, fileToUploadPath));
         assertEquals(resultLink, actualResultLink);
@@ -184,7 +188,7 @@ class Web2ResultServiceTests {
                 RESULT_STORAGE_TOKEN, storageToken
         );
 
-        doReturn(resultLink).when(uploaderService).uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath);
+        when(uploaderService.uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath)).thenReturn(resultLink);
 
         final String actualResultLink = assertDoesNotThrow(() -> web2ResultService.uploadResult(TASK_ID, fileToUploadPath));
         assertEquals(resultLink, actualResultLink);
@@ -203,7 +207,7 @@ class Web2ResultServiceTests {
                 RESULT_STORAGE_PROXY, storageProxy
         );
 
-        doReturn(resultLink).when(uploaderService).uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath);
+        when(uploaderService.uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath)).thenReturn(resultLink);
 
         final String actualResultLink = assertDoesNotThrow(() -> web2ResultService.uploadResult(TASK_ID, fileToUploadPath));
         assertEquals(resultLink, actualResultLink);
@@ -224,7 +228,7 @@ class Web2ResultServiceTests {
                 RESULT_STORAGE_TOKEN, storageToken
         );
 
-        doReturn(resultLink).when(uploaderService).uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath);
+        when(uploaderService.uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath)).thenReturn(resultLink);
 
         final String actualResultLink = assertDoesNotThrow(() -> web2ResultService.uploadResult(TASK_ID, fileToUploadPath));
         assertEquals(resultLink, actualResultLink);
@@ -246,7 +250,7 @@ class Web2ResultServiceTests {
                 RESULT_STORAGE_PROXY, storageProxy
         );
 
-        doReturn(resultLink).when(uploaderService).uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath);
+        when(uploaderService.uploadToIpfsWithIexecProxy(TASK_ID, storageProxy, storageToken, fileToUploadPath)).thenReturn(resultLink);
 
         final String actualResultLink = assertDoesNotThrow(() -> web2ResultService.uploadResult(TASK_ID, fileToUploadPath));
         assertEquals(resultLink, actualResultLink);
