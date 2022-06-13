@@ -20,6 +20,15 @@ import static com.iexec.worker.tee.post.compute.worker.WorkerApiManager.getWorke
 @Slf4j
 public class FlowService {
 
+    private final SignerService signerService;
+
+    public FlowService() {
+        this.signerService = new SignerService();
+    }
+
+    public FlowService(SignerService signerService) {
+        this.signerService = signerService;
+    }
 
     /*
      * 1 - readComputedFile
@@ -73,7 +82,7 @@ public class FlowService {
 
         String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
 
-        String enclaveSignature = SignerService.signEnclaveChallenge(messageHash, teeChallengePrivateKey);
+        String enclaveSignature = signerService.signEnclaveChallenge(messageHash, teeChallengePrivateKey);
 
         computedFile.setEnclaveSignature(enclaveSignature);
         log.info("Signer stage completed");

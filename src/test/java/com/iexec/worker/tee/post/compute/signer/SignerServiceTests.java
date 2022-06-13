@@ -11,6 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 class SignerServiceTests {
+
+    SignerService signerService = new SignerService();
+
     @Test
     void shouldSignEnclaveChallenge() {
         final String messageHash = "0x5cd0e9c5180dd35e2b8285d0db4ded193a9b4be6fbfab90cbadccecab130acad";
@@ -18,7 +21,7 @@ class SignerServiceTests {
 
         final String expectedChallenge = "0xfcc6bce5eb04284c2eb1ed14405b943574343b1abda33628fbf94a374b18dd16541c6ebf63c6943d8643ff03c7aa17f1cb17b0a8d297d0fd95fc914bdd0e85f81b";
 
-        final String actualChallenge = assertDoesNotThrow(() -> SignerService.signEnclaveChallenge(messageHash, enclaveChallengePrivateKey));
+        final String actualChallenge = assertDoesNotThrow(() -> signerService.signEnclaveChallenge(messageHash, enclaveChallengePrivateKey));
         assertEquals(expectedChallenge, actualChallenge);
     }
 
@@ -31,7 +34,7 @@ class SignerServiceTests {
             signatureUtils.when(() -> SignatureUtils.isExpectedSignerOnSignedMessageHash(any(), any(), any()))
                     .thenReturn(false);
 
-            final PostComputeException exception = assertThrows(PostComputeException.class, () -> SignerService.signEnclaveChallenge(messageHash, enclaveChallengePrivateKey));
+            final PostComputeException exception = assertThrows(PostComputeException.class, () -> signerService.signEnclaveChallenge(messageHash, enclaveChallengePrivateKey));
             assertEquals(POST_COMPUTE_INVALID_TEE_SIGNATURE, exception.getStatusCause());
             assertEquals("Failed to verify TeeEnclaveChallenge signature (exiting)", exception.getMessage());
         }

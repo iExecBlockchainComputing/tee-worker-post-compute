@@ -23,13 +23,24 @@ import static com.iexec.common.replicate.ReplicateStatusCause.*;
 @Slf4j
 public class UploaderService {
 
-    public static String uploadToDropBox(String localFilePath, String dropboxAccessToken, String remoteFilename) throws PostComputeException {
+    private final DropBoxService dropBoxService;
+
+    public UploaderService() {
+        this.dropBoxService = new DropBoxService();
+    }
+
+    public UploaderService(DropBoxService dropBoxService) {
+        this.dropBoxService = dropBoxService;
+    }
+
+    //region Dropbox
+    public String uploadToDropBox(String localFilePath, String dropboxAccessToken, String remoteFilename) throws PostComputeException {
         if (localFilePath == null || !new File(localFilePath).exists()){
             throw new PostComputeException(POST_COMPUTE_RESULT_FILE_NOT_FOUND, "Can't uploadToDropBox (localFile issue) (exiting)");
         }
 
         DbxRequestConfig config = DbxRequestConfig.newBuilder("").build();
-        DbxClientV2 client = new DbxClientV2(config, dropboxAccessToken);
+        DbxClientV2 client = createDropboxClient(dropboxAccessToken, config);
 
         try {
             String accountId = client.users().getCurrentAccount().getAccountId();
@@ -40,11 +51,16 @@ public class UploaderService {
             throw new PostComputeException(POST_COMPUTE_DROPBOX_UPLOAD_FAILED, "Can't upload to Dropbox with provided token (exiting)");
         }
 
-        return DropBoxService.uploadFile(client, new File(localFilePath), "/results/" + remoteFilename);
+        return dropBoxService.uploadFile(client, new File(localFilePath), "/results/" + remoteFilename);
     }
 
+    DbxClientV2 createDropboxClient(String dropboxAccessToken, DbxRequestConfig config) {
+        return new DbxClientV2(config, dropboxAccessToken);
+    }
+    //endregion
 
-    public static String uploadToIpfsWithIexecProxy(String taskId, String baseUrl, String token, String fileToUploadPath) throws PostComputeException {
+    //region IPFS
+    public String uploadToIpfsWithIexecProxy(String taskId, String baseUrl, String token, String fileToUploadPath) throws PostComputeException {
         byte[] fileToUpload;
 
         try {
@@ -68,7 +84,7 @@ public class UploaderService {
 
         HttpStatus statusCode = null;
         try {
-            ResponseEntity<String> response = new RestTemplate().postForEntity(baseUrl, request, String.class);
+            ResponseEntity<String> response = createRestTemplate().postForEntity(baseUrl, request, String.class);
             statusCode = response.getStatusCode();
 
             if (statusCode.is2xxSuccessful()) {
@@ -84,5 +100,9 @@ public class UploaderService {
         );
     }
 
+    RestTemplate createRestTemplate() {
+        return new RestTemplate();
+    }
+    //endregion
 
 }

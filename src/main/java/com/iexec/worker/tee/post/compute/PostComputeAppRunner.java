@@ -37,7 +37,7 @@ public class PostComputeAppRunner {
      * - 2: Failure; Unreported cause since reporting issue failed
      * - 3: Failure; Unreported cause since missing taskID context
      */
-    public void start() {
+    public int start() {
         log.info("Tee worker post-compute started");
 
         String chainTaskId = null;
@@ -46,7 +46,7 @@ public class PostComputeAppRunner {
             chainTaskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_TASK_ID_MISSING);
         } catch (PostComputeException e) {
             log.error("TEE post-compute cannot go further without taskID context");
-            System.exit(3);
+            return 3;
         }
 
         ReplicateStatusCause exitCause = null;
@@ -54,7 +54,7 @@ public class PostComputeAppRunner {
             final PostComputeApp postComputeApp = createPostComputeApp(chainTaskId);
             postComputeApp.runPostCompute();
             log.info("TEE post-compute completed");
-            System.exit(0);
+            return 0;
         } catch(PostComputeException e) {
             exitCause = e.getStatusCause();
             log.error("TEE post-compute failed with a known exitCause " +
@@ -69,10 +69,10 @@ public class PostComputeAppRunner {
             getWorkerApiClient()
                     .sendExitCauseForPostComputeStage(chainTaskId,
                             new ExitMessage(exitCause));
-            System.exit(1);
+            return 1;
         } catch (FeignException e) {
             log.error("Failed to report exitCause [exitCause:{}]", exitCause, e);
-            System.exit(2);
+            return 2;
         }
     }
 
