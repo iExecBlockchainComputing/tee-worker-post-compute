@@ -17,8 +17,8 @@ buildJavaProject(
 
 buildSimpleDocker_v3(
         buildInfo: buildInfo,
-        dockerfileDir: baseDir + '/gramine',
-        buildContext: baseDir,
+        dockerfileDir: './gramine',
+        buildContext: '.',
         dockerImageRepositoryName: 'gramine-tee-worker-post-compute',
         visibility: 'iex.ec'
 )
