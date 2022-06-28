@@ -1,0 +1,62 @@
+loader.preload = "file:/graphene/Runtime/libsysdb.so"
+#JAVA: must add /usr/lib/jvm/java-11-openjdk-amd64/lib to LD_LIBRARY_PATH
+loader.env.LD_LIBRARY_PATH = "/usr/lib/jvm/java-11-openjdk-amd64/lib/jfr:/usr/lib/jvm/java-11-openjdk-amd64/lib/jli:/usr/lib/jvm/java-11-openjdk-amd64/lib/security:/usr/lib/jvm/java-11-openjdk-amd64/lib/server:/usr/lib/jvm/java-11-openjdk-amd64/lib:/graphene/Runtime:/graphene/attestation:/usr/lib/x86_64-linux-gnu/libfakeroot:/usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/lib:"
+
+
+loader.env.PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+fs.root.type = "chroot"
+fs.root.path = "/"
+fs.root.uri = "file:/"
+
+# Graphene's default working dir is '/', so change the working directory to the desired one
+fs.start_dir = "/workplace/app"
+#fs.start_dir = "/"
+sgx.nonpie_binary = 1
+
+
+# !! INSECURE !! Allow passing command-line arguments from the host without validation.
+# Most Docker images rely on runtime arguments and hence, a more general technique is required.
+# The issue is documented at https://github.com/oscarlab/graphene/issues/1520.
+
+#loader.argv0_override = "/workplace/app/secret_prov_pf_cliet"
+loader.insecure__use_cmdline_argv = 1
+
+
+#JAVA: If using 64G or greater enclave sizes, the JVM flag `-Xmx8G` can be omitted in graphene-sgx.
+sgx.enclave_size = "16G"
+
+#JAVA: SGX needs minimum 64 threads for loading OpenJDK runtime.
+sgx.thread_num = 64
+
+# Secret Provisioning library (client-side) is preloaded
+loader.env.LD_PRELOAD = "/graphene/attestation/libsecret_prov_attest.so"
+
+
+#for mutli-key we get all the key in premain, so must unset SECRET_PROVISION_CONSTRUCTOR to prevent do RA in graphene level
+loader.env.SECRET_PROVISION_CONSTRUCTOR = "0"
+loader.env.SECRET_PROVISION_SET_PF_KEY = "1"
+loader.env.SECRET_PROVISION_CA_CHAIN_PATH = "/graphene/attestation/certs/test-ca-sha256.crt"
+# loader.env.SECRET_PROVISION_SERVERS = "localhost:4433"
+
+sgx.remote_attestation = 1
+sgx.trusted_files.libsecretprovattest = "file:/graphene/attestation/libsecret_prov_attest.so"
+
+
+# make ca allowed, so it could mount on docker from outside
+sgx.allowed_files.cachain = "file:/graphene/attestation/certs/test-ca-sha256.crt"
+
+
+sgx.allowed_files.etchostname = "file:/etc/hostname"
+sgx.allowed_files.hosts = "file:/etc/hosts"
+sgx.allowed_files.resolv = "file:/etc/resolv.conf"
+sgx.protected_files.encrypteddata = "file:/workplace/encryptedData"
+sgx.protected_files.result = "file:/workplace/result"
+sgx.allowed_files.conf = "file:/workplace/conf/config.json"
+
+loader.log_level =  "none"
+#************for premain*********************
+sgx.allowed_files.manifest = "file:/entrypoint.manifest.sgx"
+libos.entrypoint = "file:/workplace/app/premain"
+#JAVA: bin path
+app.main="/usr/bin/java"
