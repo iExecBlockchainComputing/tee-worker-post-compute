@@ -23,8 +23,8 @@ buildSimpleDocker_v3(
         visibility: 'iex.ec'
 )
 
-sconeBuildUnlocked(
-        nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
-        imageName:       repositoryName,
-        imageTag:        buildInfo.imageTag,
-        sconifyArgsPath: './docker/sconify.args')
+// sconeBuildUnlocked(
+//         nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
+//         imageName:       repositoryName,
+//         imageTag:        buildInfo.imageTag,
+//         sconifyArgsPath: './docker/sconify.args')
