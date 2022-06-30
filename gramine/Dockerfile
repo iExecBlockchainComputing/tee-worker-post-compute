@@ -1,7 +1,6 @@
 ## CI/CD version
 
-ARG HOME=/home
-ARG JAR_PATH=$HOME/build/libs/app-all.jar
+ARG JAR_PATH=build/libs/app-all.jar
 
 ###### Build application jar
 ###
