@@ -1,3 +1,6 @@
+ARG HOME=/home
+ARG JAR_PATH=$HOME/build/libs/app-all.jar
+
 FROM iexechub/iexec-graphene-base:dev
 RUN apt update &&  apt-get install -y openjdk-11-jdk git
 
@@ -12,11 +15,10 @@ COPY src/main/ /workplace/app/src/main
 
 RUN ls -a /workplace/app
 
-RUN cd /workplace/app \
-    && ./gradlew shadowJar
+COPY $JAR_PATH /workplace/app/app.jar
 
 # set the jar name for java, no need for binnary app
-RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC=com.iexec.worker.tee.post.compute.Main#" /apploader.sh
+RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC=-jar app.jar#" /apploader.sh
 
 WORKDIR /workplace/app
 
