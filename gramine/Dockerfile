@@ -1,6 +1,21 @@
+## CI/CD version
+
 ARG HOME=/home
 ARG JAR_PATH=$HOME/build/libs/app-all.jar
 
+###### Build application jar
+###
+FROM gradle:6.8.3-jdk11 as gradle-builder
+ARG HOME
+WORKDIR $HOME
+COPY build.gradle gradle.properties settings.gradle  ./
+COPY src/ src/
+RUN gradle build -i --no-daemon
+
+###
+### Build the final graminized image with
+### the produced jar.
+###
 FROM iexechub/iexec-graphene-base:dev
 RUN apt update &&  apt-get install -y openjdk-11-jdk git
 
