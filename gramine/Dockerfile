@@ -18,7 +18,7 @@ RUN ls -a /workplace/app
 COPY $JAR_PATH /workplace/app/app.jar
 
 # set the jar name for java, no need for binnary app
-RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC=-jar app.jar#" /apploader.sh
+RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC='-jar app.jar'#" /apploader.sh
 
 WORKDIR /workplace/app
 
