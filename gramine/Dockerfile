@@ -16,7 +16,7 @@ RUN cd /workplace/app \
     && ./gradlew build
 
 # set the jar name for java, no need for binnary app
-RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC=Main#" /apploader.sh
+RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC=com.iexec.worker.tee.post.compute.Main#" /apploader.sh
 
 WORKDIR /workplace/app
 
