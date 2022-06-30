@@ -13,7 +13,7 @@ COPY src/main/ /workplace/app/src/main
 RUN ls -a /workplace/app
 
 RUN cd /workplace/app \
-    && ./gradlew build
+    && ./gradlew shadowJar
 
 # set the jar name for java, no need for binnary app
 RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC=com.iexec.worker.tee.post.compute.Main#" /apploader.sh

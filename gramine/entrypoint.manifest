@@ -59,4 +59,4 @@ loader.log_level =  "none"
 sgx.allowed_files.manifest = "file:/entrypoint.manifest.sgx"
 libos.entrypoint = "file:/workplace/app/premain"
 #JAVA: bin path
-app.main="/usr/bin/java"
+app.main="/usr/bin/java -cp app-all.jar"
