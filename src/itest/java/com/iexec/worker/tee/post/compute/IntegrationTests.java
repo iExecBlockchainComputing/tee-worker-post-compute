@@ -71,7 +71,7 @@ class IntegrationTests {
     }
 
     @Test
-    void shouldHandleCallback() throws InterruptedException {
+    void shouldHandleCallback() {
         postCompute
                 .withNetworkMode(INTERNAL_NETWORK)
                 .withEnv("RESULT_TASK_ID", "0x0000000000000000000000000000000000000000000000000000000000000001")
@@ -87,7 +87,7 @@ class IntegrationTests {
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() ->
                         Assertions.assertTrue(postCompute.getLogs()
-                                .contains("Tee worker post-compute completed!")));
+                                .contains("TEE post-compute completed")));
     }
 
 }

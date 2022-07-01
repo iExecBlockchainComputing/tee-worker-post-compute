@@ -1,30 +1,29 @@
 package com.iexec.worker.tee.post.compute.utils;
 
+import com.iexec.common.replicate.ReplicateStatusCause;
+import com.iexec.worker.tee.post.compute.PostComputeException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class EnvUtils {
 
-    public static String getEnvVarOrExit(String ENV_VAR) {
-        String env = getEnvVar(ENV_VAR);
+    private EnvUtils() {
 
-        if (env.isEmpty()) {
-            log.error("Missing env variable (exiting) [envVarName:{}]", ENV_VAR);
-            System.exit(1);
-        }
-
-        return env;
     }
 
-    public static String getEnvVar(String ENV_VAR) {
-        String envVar = System.getenv(ENV_VAR);
+    public static String getEnvVar(String envVarName) {
+        String envVar = System.getenv(envVarName);
         if (envVar == null || envVar.isEmpty()) {
             return "";
         }
         return envVar;
     }
 
-    public static void exit() {
-        System.exit(1);
+    public static String getEnvVarOrThrow(String envVarName, ReplicateStatusCause statusCauseIfMissing) throws PostComputeException {
+        String envVar = System.getenv(envVarName);
+        if (envVar == null || envVar.isEmpty()) {
+            throw new PostComputeException(statusCauseIfMissing, String.format("Required env var is empty [name:%s]", envVarName));
+        }
+        return envVar;
     }
 }

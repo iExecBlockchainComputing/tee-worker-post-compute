@@ -28,7 +28,7 @@ public class DropBoxService {
      * <p>
      * Please go back to the original sample for supporting big file uploads
      */
-    public static String uploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
+    public String uploadFile(DbxClientV2 dbxClient, File localFile, String dropboxPath) {
         try (InputStream in = new FileInputStream(localFile)) {
             ProgressListener progressListener = l -> printProgress(l, localFile.length());
 
@@ -46,7 +46,7 @@ public class DropBoxService {
     }
 
 
-    private static void printProgress(long uploaded, long size) {
+    private void printProgress(long uploaded, long size) {
         log.info("Uploaded {} /{} bytes ({}%)\n", uploaded, size, 100 * (uploaded / (double) size));
     }
 

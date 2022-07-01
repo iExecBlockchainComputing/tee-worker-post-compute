@@ -24,7 +24,7 @@ public class EncryptionService {
      * Returns: folder or zip path
      *
      * */
-    public static String encryptData(String inDataFilePath, String plainTextRsaPub, boolean produceZip) {
+    public String encryptData(String inDataFilePath, String plainTextRsaPub, boolean produceZip) {
         return EncryptionHelper.encryptData(inDataFilePath, plainTextRsaPub, produceZip);
     }
 
@@ -48,7 +48,7 @@ public class EncryptionService {
      * Returns: clear data path (zip here)
      *
      * */
-    public static String decryptData(String encryptedDataFilePath, String plainTextRsaPriv) {
+    public String decryptData(String encryptedDataFilePath, String plainTextRsaPriv) {
         return EncryptionHelper.decryptData(encryptedDataFilePath, plainTextRsaPriv);
     }
 
