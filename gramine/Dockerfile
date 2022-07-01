@@ -1,18 +1,31 @@
 ## CI/CD version
 
-ARG JAR_PATH=build/libs/app-all.jar
+ARG HOME=/home
+ARG JAR_PATH=$HOME/build/libs/app-all.jar
 
+###
+### Build application jar
+###
+FROM gradle:6.8.3-jdk11 as gradle-builder
+ARG HOME
+WORKDIR $HOME
+COPY build.gradle gradle.properties settings.gradle  ./
+COPY src/ src/
+RUN gradle build -i --no-daemon
+
+
+###
+### Build the final graminized image with
+### the produced jar.
+###
 FROM iexechub/iexec-graphene-base:dev
 RUN apt update &&  apt-get install -y openjdk-11-jdk git
 
-RUN echo "${JAR_PATH}"
-RUN pwd
+ARG JAR_PATH
+COPY --from=gradle-builder $JAR_PATH /app/app.jar
 
-COPY $JAR_PATH /workplace/app/app.jar
 RUN ls -al /workplace/app
 RUN ls -al /workplace/app/app.jar
-RUN ls -al /workplace/app/app.jar/build
-RUN ls -al /workplace/app/app.jar/build/libs
 
 # set the jar name for java, no need for binnary app
 RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC='-jar app.jar'#" /apploader.sh
