@@ -5,6 +5,9 @@ ARG JAR_PATH=build/libs/app-all.jar
 FROM iexechub/iexec-graphene-base:dev
 RUN apt update &&  apt-get install -y openjdk-11-jdk git
 
+RUN echo "${JAR_PATH}"
+RUN pwd
+
 COPY $JAR_PATH /workplace/app/app.jar
 RUN ls -al /workplace/app
 RUN ls -al /workplace/app/app.jar
