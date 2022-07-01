@@ -52,7 +52,7 @@ sgx.allowed_files.hosts = "file:/etc/hosts"
 sgx.allowed_files.resolv = "file:/etc/resolv.conf"
 sgx.protected_files.encrypteddata = "file:/workplace/encryptedData"
 sgx.protected_files.result = "file:/workplace/result"
-sgx.protected_files.result = "file:/workplace/iexec_out/computed.json"
+sgx.protected_files.computedfile = "file:/workplace/iexec_out/computed.json"
 sgx.allowed_files.conf = "file:/workplace/conf/config.json"
 
 loader.log_level =  "none"
