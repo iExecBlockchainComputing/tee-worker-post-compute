@@ -1,17 +1,15 @@
 ## CI/CD version
 
-ARG HOME=/home
-ARG JAR_PATH=$HOME/build/libs/app-all.jar
-
 ###
 ### Build application jar
 ###
 FROM gradle:6.8.3-jdk11 as gradle-builder
-ARG HOME
+ARG HOME=/home
 WORKDIR $HOME
 COPY build.gradle gradle.properties settings.gradle  ./
 COPY src/ src/
 RUN gradle build -i --no-daemon
+RUN ls -al /home/build/libs
 
 
 ###
@@ -19,15 +17,10 @@ RUN gradle build -i --no-daemon
 ### the produced jar.
 ###
 FROM iexechub/iexec-graphene-base:dev
-RUN apt update &&  apt-get install -y openjdk-11-jdk git
 
-ARG JAR_PATH
-COPY --from=gradle-builder $JAR_PATH /app/app.jar
+COPY --from=gradle-builder /home/build/libs/app-all.jar /workplace/app/app.jar
 
-RUN ls -al /workplace/app
-RUN ls -al /workplace/app/app.jar
-
-# set the jar name for java, no need for binnary app
+RUN apt update &&  apt-get install -y openjdk-11-jdk
 RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC='-jar app.jar'#" /apploader.sh
 
 WORKDIR /workplace/app
