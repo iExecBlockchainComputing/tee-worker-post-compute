@@ -1,10 +1,15 @@
 ## CI/CD version
 
+ARG JAR_PATH=build/libs/app-all.jar
+
 FROM iexechub/iexec-graphene-base:dev
 RUN apt update &&  apt-get install -y openjdk-11-jdk git
 
-COPY build/libs/app-all.jar /workplace/app/app.jar
-RUN ls -a /workplace/app
+COPY $JAR_PATH /workplace/app/app.jar
+RUN ls -al /workplace/app
+RUN ls -al /workplace/app/app.jar
+RUN ls -al /workplace/app/app.jar/build
+RUN ls -al /workplace/app/app.jar/build/libs
 
 # set the jar name for java, no need for binnary app
 RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC='-jar app.jar'#" /apploader.sh
