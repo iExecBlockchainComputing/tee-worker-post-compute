@@ -23,6 +23,8 @@ COPY --from=gradle-builder /home/build/libs/app-all.jar /workplace/app/app.jar
 RUN apt update &&  apt-get install -y openjdk-11-jdk
 RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC='-jar app.jar'#" /apploader.sh
 
+RUN mkdir /post-compute-tmp
+
 WORKDIR /workplace/app
 
 # finalize manifest
