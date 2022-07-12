@@ -45,7 +45,6 @@ curl --location --request POST 'localhost:8080/api/session/' \
         "RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY": "'${RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY}'"
       },
       "volumes": [
-        "/iexec_out"
       ]
     }
   ]
