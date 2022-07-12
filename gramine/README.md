@@ -2,7 +2,8 @@
 
 1. Start a SPS container:
 ```shell
-docker run -d -v /opt/multiple/sessions:/graphene/workplace/sessions -v /opt/secret-prov/certs/:/graphene/workplace/certs -p 8080:8080 -p 4433:4433 -e SPS_USERNAME=admin -e SPS_PASSWORD=admin --name iexec-sps iexechub/iexec-sps:bf3bb00-dev
+SPS_VERSION=<set SPS version here>
+docker run -d -v /opt/multiple/sessions:/graphene/workplace/sessions -v /opt/secret-prov/certs/:/graphene/workplace/certs -p 8080:8080 -p 4433:4433 -e SPS_USERNAME=admin -e SPS_PASSWORD=admin --name iexec-sps iexechub/iexec-sps:${SPS_VERSION}
 ```
 
 
@@ -13,11 +14,13 @@ docker build -t gramine-tee-worker-post-compute:latest -f gramine/Dockerfile  .
 Please note the `measurement` value.
 
 
-3. To add a session to the SPS, run the following after having filled both env var:
+3. To add a session to the SPS, run the following after having filled all env vars:
 ```shell
 SESSION_ID=<define your custom session id>
 MEASUREMENT=<set previous retrieved measurement>
-SPS_IP=<set SPS IP>
+SPS_URL=<set SPS URL>
+SPS_SESSION_PORT=<set SPS session port>
+SPS_ENCLAVE_PORT=<set SPS enclave port>
 
 TASK_ID=<set task ID>
 RESULT_STORAGE_CALLBACK=<set whether you use callback>
@@ -26,7 +29,7 @@ RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY=<set TEE challenge private key>
 RESULT_STORAGE_TOKEN=<set result storage token>
 RESULT_STORAGE_PROXY=<set result storage proxy>
 
-curl --location --request POST 'localhost:8080/api/session/' \
+curl --location --request POST "${SPS_URL}:${SPS_SESSION_PORT}/api/session/" \
 --header 'Authorization: Basic YWRtaW46YWRtaW4=' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -54,7 +57,7 @@ curl --location --request POST 'localhost:8080/api/session/' \
 
 4. Run the app:
 ```shell
-docker run --device=/dev/sgx/enclave -v "/iexec_out/${TASK_ID}:/iexec_out" -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket -v $PWD/encryptedData:/workplace/encryptedData -v /opt/secret-prov/certs/:/graphene/attestation/certs/ -e session=${SESSION_ID} -e sps=${SPS_IP}  gramine-tee-worker-post-compute:latest
+docker run --device=/dev/sgx/enclave -v "/iexec_out/${TASK_ID}:/iexec_out" -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket -v $PWD/encryptedData:/workplace/encryptedData -v /opt/secret-prov/certs/:/graphene/attestation/certs/ -e session=${SESSION_ID} -e sps="${SPS_URL}:${SPS_ENCLAVE_PORT}"  gramine-tee-worker-post-compute:latest
 ```
 
 
