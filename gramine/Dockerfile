@@ -1,4 +1,4 @@
-## CI/CD version
+*## CI/CD version
 
 ###
 ### Build application jar
@@ -16,7 +16,7 @@ RUN ls -al /home/build/libs
 ### Build the final graminized image with
 ### the produced jar.
 ###
-FROM iexechub/iexec-graphene-base:f810d8c-dev
+FROM iexechub/iexec-graphene-base:0.4.0
 
 COPY --from=gradle-builder /home/build/libs/app-all.jar /workplace/app/app.jar
 
