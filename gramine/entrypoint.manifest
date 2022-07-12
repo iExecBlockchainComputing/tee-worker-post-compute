@@ -51,11 +51,9 @@ sgx.allowed_files.etchostname = "file:/etc/hostname"
 sgx.allowed_files.hosts = "file:/etc/hosts"
 sgx.allowed_files.resolv = "file:/etc/resolv.conf"
 sgx.protected_files.encrypteddata = "file:/workplace/encryptedData"
-sgx.allowed_files.result = "file:/iexec_out/result.txt"
-sgx.allowed_files.computedfile = "file:/iexec_out/computed.json"
 sgx.allowed_files.conf = "file:/workplace/conf/config.json"
 sgx.protected_files.iexecout = "file:/iexec_out"
-sgx.allowed_files.post-compute-tmp = "file:/post-compute-tmp"
+sgx.protected_files.post-compute-tmp = "file:/post-compute-tmp"
 
 loader.log_level =  "none"
 #************for premain*********************
