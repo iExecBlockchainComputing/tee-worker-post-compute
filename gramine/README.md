@@ -30,7 +30,7 @@ RESULT_STORAGE_TOKEN=<set result storage token>
 RESULT_STORAGE_PROXY=<set result storage proxy>
 
 curl --location --request POST "${SPS_URL}:${SPS_SESSION_PORT}/api/session/" \
---header 'Authorization: Basic YWRtaW46YWRtaW4=' \
+--header 'Authorization: Basic YWRtaW46YWRtaW4=' \  # Depends on SPS configuration (`auth = base64(user:login)`)
 --header 'Content-Type: application/json' \
 --data-raw '{
   "session": "'${SESSION_ID}'",
