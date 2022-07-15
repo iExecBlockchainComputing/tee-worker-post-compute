@@ -21,7 +21,7 @@ FROM iexechub/iexec-graphene-base:0.4.0
 
 COPY --from=gradle-builder /home/build/libs/app-all.jar /workplace/app/app.jar
 
-RUN apt update &&  apt-get install -y openjdk-11-jdk
+RUN apt update && apt-get install -y openjdk-11-jdk && rm -rf /var/lib/apt/lists/*
 RUN sed -i "s#MAIN_FUNC=#MAIN_FUNC='-jar app.jar'#" /apploader.sh
 
 RUN mkdir /post-compute-tmp
