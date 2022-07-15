@@ -65,7 +65,7 @@ curl --location --request POST "${SPS_URL}:${SPS_SESSION_PORT}/api/session/" \
 ```shell
 docker run \
   --device=/dev/sgx/enclave \
-  -v "/iexec_out/${TASK_ID}:/iexec_out" \
+  -v "/tmp/iexec_out/${TASK_ID}:/iexec_out" \
   -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
   -v $PWD/encryptedData:/workplace/encryptedData \
   -v /opt/secret-prov/certs/:/graphene/attestation/certs/ \
