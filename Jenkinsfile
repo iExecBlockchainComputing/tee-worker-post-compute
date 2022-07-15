@@ -15,8 +15,16 @@ buildJavaProject(
         preProductionVisibility: 'docker.io',
         productionVisibility: 'docker.io')
 
-sconeBuildUnlocked(
-        nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
-        imageName:       repositoryName,
-        imageTag:        buildInfo.imageTag,
-        sconifyArgsPath: './docker/sconify.args')
+buildSimpleDocker_v3(
+        buildInfo: buildInfo,
+        dockerfileDir: './gramine',
+        buildContext: '.',
+        dockerImageRepositoryName: 'gramine-tee-worker-post-compute',
+        visibility: 'iex.ec'
+)
+
+// sconeBuildUnlocked(
+//         nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
+//         imageName:       repositoryName,
+//         imageTag:        buildInfo.imageTag,
+//         sconifyArgsPath: './docker/sconify.args')
