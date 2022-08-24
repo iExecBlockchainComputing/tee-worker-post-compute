@@ -17,7 +17,7 @@ RUN ls -al /home/build/libs
 ### Build the final graminized image with
 ### the produced jar.
 ###
-FROM iexechub/iexec-graphene-base:0.4.0
+FROM docker-regis.iex.ec/iexec-graphene-base:17254d57
 
 COPY --from=gradle-builder /home/build/libs/app-all.jar /workplace/app/app.jar
 
