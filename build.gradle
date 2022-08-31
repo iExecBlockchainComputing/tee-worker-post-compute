@@ -14,6 +14,9 @@ targetCompatibility = 11
 ext {
     gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
     jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
+    ociImageBase = 'docker-regis.iex.ec/' + rootProject.name
+    ociImageName = ociImageBase + ':dev'
+    ociTeeImageName = ociImageBase + '-unlocked:dev'
     // versions
     testContainersVersion = '1.16.2'
     mockitoVersion = '4.4.0'
@@ -27,6 +30,13 @@ if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|h
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        url "https://docker-regis-adm.iex.ec/repository/maven-public/"
+        credentials {
+            username nexusUser
+            password nexusPassword
+        }
+    }
     maven {
         url "https://nexus.intra.iex.ec/repository/maven-public/"
     }
@@ -136,7 +146,7 @@ shadowJar {
 }
 
 docker {
-    name 'nexus.intra.iex.ec/' + rootProject.name + ':dev'
+    name ociImageName
     dockerfile file('docker/Dockerfile.local')
     files('build/libs/' + fatJar)
     buildArgs([JAR_PATH: fatJar ])
@@ -145,6 +155,13 @@ tasks.docker.dependsOn tasks.build
 
 task buildImage {
     dependsOn tasks.docker
+}
+
+task buildTeeImage(type: Exec) {
+    dependsOn buildImage
+    environment 'IMG_FROM', ociImageName
+    environment 'IMG_TO', ociTeeImageName
+    commandLine 'docker/sconify.sh'
 }
 
 task itest(type: Test) {
