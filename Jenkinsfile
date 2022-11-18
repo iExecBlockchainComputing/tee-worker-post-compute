@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@2.0.2') _
+@Library('global-jenkins-library@2.2.0') _
 
 String repositoryName = 'tee-worker-post-compute'
 
@@ -23,11 +23,10 @@ buildSimpleDocker_v3(
         visibility: 'iex.ec'
 )
 
-
-// sconeBuildUnlocked(
-//         nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
-//         imageName:       repositoryName,
-//         imageTag:        buildInfo.imageTag,
-//         sconifyArgsPath: './docker/sconify.args',
-//         sconifyVersion:  '5.7.1'
-// )
+sconeBuildUnlocked(
+        nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
+        imageName:       repositoryName,
+        imageTag:        buildInfo.imageTag,
+        sconifyArgsPath: './docker/sconify.args',
+        sconifyVersion:  '5.7.1'
+)
