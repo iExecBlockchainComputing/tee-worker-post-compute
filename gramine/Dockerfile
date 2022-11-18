@@ -17,7 +17,7 @@ RUN ls -al /home/build/libs
 ### Build the final graminized image with
 ### the produced jar.
 ###
-FROM docker-regis.iex.ec/iexec-graphene-base:0.6.0
+FROM docker-regis.iex.ec/iexec-graphene-base:0.7.0
 
 COPY --from=gradle-builder /home/build/libs/app-all.jar /workplace/app/app.jar
 
@@ -32,16 +32,6 @@ WORKDIR /workplace/app
 
 # finalize manifest
 COPY gramine/entrypoint.manifest /
-RUN python3 -B /var/tmp/finalize_manifest.py
 
-# sign image
-COPY gramine/signer-key.pem /signer-key.pem
-RUN /graphene/python/graphene-sgx-sign \
-        -libpal /graphene/Runtime/libpal-Linux-SGX.so \
-        -key /signer-key.pem \
-        -manifest /entrypoint.manifest \
-        -output /entrypoint.manifest.sgx
-
-RUN rm -rf /var/tmp/* \
-    && rm -rf /graphene/python/graphene-sgx-sign /graphene/python/graphenelibos/sgx_sign.py \
-    && rm -rf /signer-key.pem
+# Finalize app (finalize manifest and sign app)
+RUN /finalize-app.sh
