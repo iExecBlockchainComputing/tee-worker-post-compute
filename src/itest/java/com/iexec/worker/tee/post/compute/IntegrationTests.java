@@ -43,7 +43,7 @@ class IntegrationTests {
     public static final String POST_COMPUTE = "post-compute";
     public static final String INTERNAL_NETWORK = "iexec-post-compute-net";
     public static final String TEE_WORKER_POST_COMPUTE_IMAGE =
-            "nexus.intra.iex.ec/tee-worker-post-compute:dev";
+            "docker-regis.iex.ec/tee-worker-post-compute:dev";
 
     @Container
     private static final DockerComposeContainer<?> worker =
