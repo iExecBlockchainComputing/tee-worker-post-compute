@@ -12,7 +12,6 @@ sourceCompatibility = 11
 targetCompatibility = 11
 
 ext {
-    gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
     jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
     ociImageBase = 'docker-regis.iex.ec/' + rootProject.name
     ociImageName = ociImageBase + ':dev'
@@ -21,6 +20,10 @@ ext {
     testContainersVersion = '1.16.2'
     mockitoVersion = '4.4.0'
     systemStubsVersion = '2.0.1'
+}
+
+if (!project.hasProperty('gitBranch')) {
+    ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
 if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
