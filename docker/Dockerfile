@@ -2,19 +2,6 @@
 ## git clone, then cd into
 ## docker image build -f docker/Dockerfile -t nexus.intra.iex.ec/tee-worker-post-compute:dev . --no-cache
 
-ARG HOME=/home
-ARG JAR_PATH=$HOME/build/libs/app-all.jar
-
-###
-### Build application jar
-###
-FROM gradle:6.8.3-jdk11 as gradle-builder
-ARG HOME
-WORKDIR $HOME
-COPY build.gradle gradle.properties settings.gradle  ./
-COPY src/ src/
-RUN gradle build -i --no-daemon
-
 ###
 ### Build the final sconified image with
 ### the produced jar.
@@ -26,7 +13,7 @@ RUN gradle build -i --no-daemon
 # 1. Inject the right .jar file
 # 2. Print the mrenclave at the end of the flow
 #
-FROM alpine:3.10 as native
+FROM alpine:3.10
 ENV LANG C.UTF-8
 # By default JVM will try to allocate 16GB heap, let's reduce its size a bit
 ENV JAVA_TOOL_OPTIONS="-Xmx256m"
@@ -46,5 +33,4 @@ ENV PATH $PATH:/usr/lib/jvm/java-11-openjdk/jre/bin:/usr/lib/jvm/java-11-openjdk
 RUN apk add --no-cache openjdk11 \
     && [ "$JAVA_HOME" = "$(docker-java-home)" ]
 RUN which java
-ARG JAR_PATH
-COPY --from=gradle-builder $JAR_PATH /app/app.jar
+COPY build/libs/app-all.jar $JAR_PATH /app/app.jar
