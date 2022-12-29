@@ -4,7 +4,6 @@ plugins {
     id 'jacoco'
     id 'org.sonarqube' version '3.3'
     id 'maven-publish'
-    id 'com.palantir.docker' version '0.26.0'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
@@ -13,7 +12,7 @@ targetCompatibility = 11
 
 ext {
     jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
-    ociImageBase = 'docker-regis.iex.ec/' + rootProject.name
+    ociImageBase = 'local/' + rootProject.name
     ociImageName = ociImageBase + ':dev'
     ociTeeImageName = ociImageBase + '-unlocked:dev'
     // versions
@@ -138,26 +137,20 @@ jar {
     }
 }
 
-def app = 'app'
-def fatJar = "${app}-all.jar"
-
 // Jar with all dependencies (app-all.jar)
 shadowJar {
     mainClassName = mainClass
-    archiveBaseName.set(app)
+    archiveBaseName.set('app')
     archiveVersion.set('') // remove version from name
 }
 
-docker {
-    name ociImageName
-    dockerfile file('docker/Dockerfile.local')
-    files('build/libs/' + fatJar)
-    buildArgs([JAR_PATH: fatJar ])
-}
-tasks.docker.dependsOn tasks.build
+ext.jarPathForOCI  = relativePath(tasks.shadowJar.outputs.files.singleFile)
 
-task buildImage {
-    dependsOn tasks.docker
+task buildImage(type: Exec) {
+    group 'Build'
+    description 'Builds an OCI image from a Dockerfile.'
+    dependsOn shadowJar
+    commandLine 'docker', 'build', '--build-arg', 'jar=' + jarPathForOCI, '-t', ociImageName, '.'
 }
 
 task buildTeeImage(type: Exec) {
