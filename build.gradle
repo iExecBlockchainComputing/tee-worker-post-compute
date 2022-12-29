@@ -9,9 +9,6 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-sourceCompatibility = 11
-targetCompatibility = 11
-
 ext {
     jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
     ociImageBase = 'docker-regis.iex.ec/' + rootProject.name
@@ -98,11 +95,17 @@ dependencies {
 
 }
 
-tasks.withType(Tar) {
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+tasks.withType(Tar).configureEach {
     enabled = false
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     finalizedBy jacocoTestReport
     useJUnitPlatform()
 }
