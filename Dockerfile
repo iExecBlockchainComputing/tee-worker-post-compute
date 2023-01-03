@@ -1,12 +1,15 @@
-FROM alpine:3.10 as native
+FROM alpine:3.10
 
-ARG JAR_PATH
+ARG jar
 
 ENV LANG C.UTF-8
+
 # By default JVM will try to allocate 16GB heap, let's reduce its size a bit
 ENV JAVA_TOOL_OPTIONS="-Xmx256m"
+
 # This is necessary to prevent java from execve'ing itself
 ENV LD_LIBRARY_PATH=/usr/lib/jvm/java-11-openjdk/lib/server:/usr/lib/jvm/java-11-openjdk/lib:/usr/lib/jvm/java-11-openjdk/../lib
+
 # add a simple script that can auto-detect the appropriate JAVA_HOME value
 # based on whether the JDK or only the JRE is installed
 RUN { \
@@ -22,6 +25,6 @@ RUN apk add --no-cache openjdk11 \
     && [ "$JAVA_HOME" = "$(docker-java-home)" ]
 RUN which java
 
-RUN echo ${JAR_PATH} && mkdir /app
-COPY $JAR_PATH /app/app.jar
+COPY $jar /app/app.jar
+
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
