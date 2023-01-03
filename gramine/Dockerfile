@@ -4,7 +4,7 @@
 ### TODO Get JAR from native image instead of rebuilding everything
 ### Build application jar
 ###
-FROM gradle:6.8.3-jdk11 as gradle-builder
+FROM gradle:7.6-jdk11 as gradle-builder
 ARG HOME=/home
 WORKDIR $HOME
 COPY build.gradle gradle.properties settings.gradle  ./
