@@ -1,0 +1,5 @@
+ARG BASE_IMAGE
+FROM $BASE_IMAGE
+ENV CA=test
+COPY gramine/entrypoint.manifest /
+RUN /finalize-app.sh
