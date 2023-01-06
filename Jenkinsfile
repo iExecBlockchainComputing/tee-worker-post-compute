@@ -4,21 +4,22 @@ String repositoryName = 'tee-worker-post-compute'
 
 buildInfo = getBuildInfo()
 
-buildJavaProject(
-        buildInfo: buildInfo,
-        integrationTestsEnvVars: [],
-        shouldPublishJars: false,
-        shouldPublishDockerImages: true,
-        dockerfileDir: '.',
-        buildContext: '.',
-        dockerImageRepositoryName: repositoryName,
-        preProductionVisibility: 'docker.io',
-        productionVisibility: 'docker.io')
+// buildJavaProject(
+//         buildInfo: buildInfo,
+//         integrationTestsEnvVars: [],
+//         shouldPublishJars: false,
+//         shouldPublishDockerImages: true,
+//         dockerfileDir: '.',
+//         buildContext: '.',
+//         dockerImageRepositoryName: repositoryName,
+//         preProductionVisibility: 'docker.io',
+//         productionVisibility: 'docker.io')
 
 stage('Build Gramine') {
     dockerfileDir = './gramine'
     dockerImageRepositoryName = 'gramine-tee-worker-post-compute'
     visibility = 'iex.ec'
+    productionImageName = ''
     stage('Build Gramine production image') {
         productionImageName = buildSimpleDocker_v3(
             buildInfo: buildInfo,
