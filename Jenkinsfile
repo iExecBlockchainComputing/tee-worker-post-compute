@@ -23,7 +23,7 @@ stage('Build Gramine') {
         productionImageName = buildSimpleDocker_v3(
             buildInfo: buildInfo,
             dockerfileDir: dockerfileDir,
-            buildContext: baseDir,
+            buildContext: '.',
             dockerImageRepositoryName: dockerImageRepositoryName,
             visibility: visibility
         )
