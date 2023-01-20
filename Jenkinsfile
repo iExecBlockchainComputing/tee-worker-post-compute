@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@2.3.0') _
+@Library('global-jenkins-library@2.3.1') _
 
 String repositoryName = 'tee-worker-post-compute'
 
@@ -13,13 +13,14 @@ buildJavaProject(
         buildContext: '.',
         dockerImageRepositoryName: repositoryName,
         preProductionVisibility: 'docker.io',
-        productionVisibility: 'docker.io')
+        productionVisibility: Registries.EXTERNAL_DOCKERIO_HOST
+)
 
 stage('Build Gramine') {
     gramineBuildInfo = buildInfo.clone()
     dockerfileDir = './gramine'
     gramineBuildInfo.imageTag += '-gramine'
-    visibility = 'iex.ec'
+    visibility = Registries.EXTERNAL_IEXEC_HOST
     productionImageName = ''
     stage('Build Gramine production image') {
         productionImageName = buildSimpleDocker_v3(
