@@ -36,9 +36,6 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.File;
 
-import static com.iexec.common.worker.result.ResultUtils.*;
-import static com.iexec.worker.tee.post.compute.worker.WorkerApiManager.WORKER_HOST_ENV_VAR;
-
 @Slf4j
 @ExtendWith(SystemStubsExtension.class)
 class IntegrationTests {
@@ -70,11 +67,11 @@ class IntegrationTests {
     @Test
     void shouldHandleCallback(EnvironmentVariables environment) {
         final String taskId = "0x0000000000000000000000000000000000000000000000000000000000000001";
-        environment.set(RESULT_TASK_ID, taskId);
-        environment.set(RESULT_STORAGE_CALLBACK, "yes");
-        environment.set(RESULT_SIGN_WORKER_ADDRESS, "0x0000000000000000000000000000000000000002");
-        environment.set(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, "0x000000000000000000000000000000000000000000000000000000000000003");
-        environment.set(WORKER_HOST_ENV_VAR, "localhost:13100");
+        environment.set("RESULT_TASK_ID", taskId);
+        environment.set("RESULT_STORAGE_CALLBACK", "yes");
+        environment.set("RESULT_SIGN_WORKER_ADDRESS", "0x0000000000000000000000000000000000000002");
+        environment.set("RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY", "0x000000000000000000000000000000000000000000000000000000000000003");
+        environment.set("WORKER_HOST", "localhost:13100");
 
         try (MockedStatic<IexecFileHelper> iexecFileHelper = Mockito.mockStatic(IexecFileHelper.class)) {
             final ObjectMapper objectMapper = new ObjectMapper();

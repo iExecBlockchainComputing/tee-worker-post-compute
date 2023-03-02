@@ -22,7 +22,7 @@ import feign.Logger;
 import org.apache.commons.lang3.StringUtils;
 
 public class WorkerApiManager {
-    public static final String WORKER_HOST_ENV_VAR = "WORKER_HOST";
+    private static final String WORKER_HOST_ENV_VAR = "WORKER_HOST";
     private static final String WORKER_HOST = getWorkerHost();
 
     private static WorkerApiClient workerApiClient;
