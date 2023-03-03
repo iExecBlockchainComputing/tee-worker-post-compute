@@ -22,10 +22,18 @@ import feign.Logger;
 import org.apache.commons.lang3.StringUtils;
 
 public class WorkerApiManager {
+    public static final String DEFAULT_WORKER_HOST = "worker:13100";
     private static final String WORKER_HOST_ENV_VAR = "WORKER_HOST";
     private static final String WORKER_HOST = getWorkerHost();
 
     private static WorkerApiClient workerApiClient;
+
+    public static String getWorkerHost() {
+        final String host = EnvUtils.getEnvVar(WORKER_HOST_ENV_VAR);
+        return StringUtils.isBlank(host)
+                ? DEFAULT_WORKER_HOST
+                : host;
+    }
 
     private WorkerApiManager() {
         throw new UnsupportedOperationException();
@@ -38,12 +46,5 @@ public class WorkerApiManager {
                     .target(WorkerApiClient.class, "http://" + WORKER_HOST);
         }
         return workerApiClient;
-    }
-
-    public static String getWorkerHost() {
-        final String host = EnvUtils.getEnvVar(WORKER_HOST_ENV_VAR);
-        return StringUtils.isBlank(host)
-                ? "worker:13100"
-                : host;
     }
 }
