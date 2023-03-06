@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@2.3.1') _
+@Library('global-jenkins-library@feature/add-build-gramine') _
 
 String repositoryName = 'tee-worker-post-compute'
 
@@ -16,33 +16,10 @@ buildJavaProject(
         productionVisibility: Registries.EXTERNAL_DOCKERIO_HOST
 )
 
-stage('Build Gramine') {
-    gramineBuildInfo = buildInfo.clone()
-    dockerfileDir = './gramine'
-    gramineBuildInfo.imageTag += '-gramine'
-    productionImageName = ''
-    stage('Build Gramine production image') {
-        productionImageName = buildSimpleDocker_v3(
-            buildInfo: gramineBuildInfo,
-            dockerfileDir: dockerfileDir,
-            buildContext: '.',
-            dockerImageRepositoryName: repositoryName,
-            visibility: buildInfo.isPreProduction || buildInfo.isProduction ? Registries.EXTERNAL_DOCKERIO_HOST : Registries.EXTERNAL_IEXEC_HOST
-        )
-    }
-    stage('Build Gramine test CA image') {
-        testCaSuffix = 'test-ca'
-        gramineBuildInfo.imageTag += '-' + testCaSuffix
-        buildSimpleDocker_v3(
-            buildInfo: gramineBuildInfo,
-            dockerfileDir: dockerfileDir,
-            dockerfileFilename: 'Dockerfile.' + testCaSuffix,
-            dockerBuildOptions: '--build-arg BASE_IMAGE=' + productionImageName,
-            dockerImageRepositoryName: repositoryName,
-            visibility: Registries.EXTERNAL_IEXEC_HOST
-        )
-    }
-}
+buildGramine(
+    buildInfo: buildInfo,
+    dockerfileDir: 'gramine'
+)
 
 sconeBuildUnlocked(
         nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
