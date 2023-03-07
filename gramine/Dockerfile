@@ -1,25 +1,6 @@
-## CI/CD version
-
-###
-### TODO Get JAR from native image instead of rebuilding everything
-### Build application jar
-###
-FROM gradle:7.6-jdk11 as gradle-builder
-ARG HOME=/home
-WORKDIR $HOME
-COPY build.gradle gradle.properties settings.gradle  ./
-COPY src/ src/
-RUN gradle build -i --no-daemon
-RUN ls -al /home/build/libs
-
-
-###
-### Build the final graminized image with
-### the produced jar.
-###
 FROM iexechub/iexec-gramine-base:0.10.0
 
-COPY --from=gradle-builder /home/build/libs/app-all.jar /workplace/app/app.jar
+COPY build/libs/app-all.jar /workplace/app/app.jar
 
 RUN apt update \
     && apt-get install -y openjdk-11-jre-headless \
