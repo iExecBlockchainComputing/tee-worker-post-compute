@@ -111,7 +111,7 @@ class PostComputeAppRunnerTests {
                 .when(postComputeApp).runPostCompute();
 
         WorkerApiClient workerApiClient = mock(WorkerApiClient.class);
-        doThrow(mock(FeignException.NotFound.class))
+        doThrow(FeignException.NotFound.class)
                 .when(workerApiClient).sendExitCauseForPostComputeStage(eq(CHAIN_TASK_ID), any());
 
         when(postComputeAppRunner.createPostComputeApp(CHAIN_TASK_ID)).thenReturn(postComputeApp);
