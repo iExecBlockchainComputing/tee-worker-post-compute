@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[8.0.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2023-03-08
+## [[8.0.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.0.0) 2023-03-08
 
 ### New Features
 * #69 #68 #63 #61 #54 Enable Gramine framework for TEE tasks.
