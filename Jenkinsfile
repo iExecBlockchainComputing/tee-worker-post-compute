@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@2.0.1') _
+@Library('global-jenkins-library@2.5.0') _
 
 String repositoryName = 'tee-worker-post-compute'
 
@@ -9,14 +9,22 @@ buildJavaProject(
         integrationTestsEnvVars: [],
         shouldPublishJars: false,
         shouldPublishDockerImages: true,
-        dockerfileDir: 'docker',
+        dockerfileDir: '.',
         buildContext: '.',
         dockerImageRepositoryName: repositoryName,
         preProductionVisibility: 'docker.io',
-        productionVisibility: 'docker.io')
+        productionVisibility: Registries.EXTERNAL_DOCKERIO_HOST
+)
+
+buildGramine(
+    buildInfo: buildInfo,
+    dockerfileDir: 'gramine'
+)
 
 sconeBuildUnlocked(
         nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
         imageName:       repositoryName,
         imageTag:        buildInfo.imageTag,
-        sconifyArgsPath: './docker/sconify.args')
+        sconifyArgsPath: './docker/sconify.args',
+        sconifyVersion:  '5.7.1'
+)
