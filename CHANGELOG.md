@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 ### Bug Fixes
+* Run IT on native code instead of already-built image. (#71)
 ### Quality
 ### Dependency Upgrades
 
