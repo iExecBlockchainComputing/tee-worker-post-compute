@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import com.iexec.worker.tee.post.compute.web2.Web2ResultService;
 import com.iexec.worker.tee.post.compute.worflow.FlowService;
 
-import static com.iexec.common.tee.TeeUtils.booleanFromYesNo;
 import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
+import static com.iexec.commons.poco.tee.TeeUtils.booleanFromYesNo;
 
 public class PostComputeApp {
     private final FlowService flowService;
