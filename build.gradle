@@ -69,11 +69,6 @@ dependencies {
     // Dropbox
     implementation 'com.dropbox.core:dropbox-core-sdk:3.1.1'
 
-    // lombok
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
-    annotationProcessor "org.projectlombok:lombok:1.18.10"
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
-
     // Apache Commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
