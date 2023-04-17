@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 ### Dependency Upgrades
 - Remove `log4j-slf4j-impl` dependency. (#76)
 - Remove `lombok` dependencies provided by lombok gradle plugin. (#76)
+- Upgrade to `iexec-common` 8.0.0. (#77)
+- Add new `iexec-commons-poco` 1.0.2 dependency. (#77)
 
 ## [[8.0.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.0.0) 2023-03-08
 
