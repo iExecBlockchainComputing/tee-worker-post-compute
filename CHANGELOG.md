@@ -6,9 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 ### Bug Fixes
-* Run IT on native code instead of already-built image. (#71)
+- Run IT on native code instead of already-built image. (#71)
 ### Quality
 ### Dependency Upgrades
+- Remove `log4j-slf4j-impl` dependency. (#76)
+- Remove `lombok` dependencies provided by lombok gradle plugin. (#76)
 
 ## [[8.0.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.0.0) 2023-03-08
 
