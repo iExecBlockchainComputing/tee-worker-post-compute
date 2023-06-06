@@ -61,6 +61,7 @@ configurations {
 
 dependencies {
     // iexec
+    implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
 
     // This dependency is used by the application.
@@ -69,11 +70,9 @@ dependencies {
     // Dropbox
     implementation 'com.dropbox.core:dropbox-core-sdk:3.1.1'
 
-    // lombok
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
-    annotationProcessor "org.projectlombok:lombok:1.18.10"
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
-    
+    // Apache Commons-lang3
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+
     //rest template
     implementation 'org.springframework:spring-web:5.2.4.RELEASE'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
