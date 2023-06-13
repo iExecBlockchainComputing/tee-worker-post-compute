@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2023
 
+## [[8.1.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.1.0) 2023-06-06
+
 ### Bug Fixes
 - Run IT on native code instead of already-built image. (#71)
 ### Dependency Upgrades
