@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[8.1.1]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.1.1) 2023-06-23
+
+### Dependency Upgrades
+- Upgrade to `iexec-common` 8.2.1. (#81)
+- Upgrade to `iexec-commons-poco` 3.0.4. (#81)
+
 ## [[8.1.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.1.0) 2023-06-06
 
 ### Bug Fixes
