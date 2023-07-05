@@ -22,9 +22,13 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.*;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+
+import java.io.File;
+import java.io.IOException;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.worker.result.ResultUtils.*;
@@ -45,13 +49,15 @@ class Web2ResultServiceTests {
     @Mock
     EncryptionService encryptionService;
 
-    @Spy
-    @InjectMocks
+    @TempDir
+    File tmpFolder;
+
     Web2ResultService web2ResultService;
 
     @BeforeEach
     void openMocks() {
         MockitoAnnotations.openMocks(this);
+        this.web2ResultService = spy(new Web2ResultService(uploaderService, encryptionService, tmpFolder.getAbsolutePath()));
     }
 
     //region encryptAndUploadResult
@@ -89,6 +95,38 @@ class Web2ResultServiceTests {
         }
     }
     //endregion
+
+    // region checkResultFilesName
+    @Test
+    void shouldPassResultFilesNameCheckWhenNoFile() {
+        assertDoesNotThrow(() -> web2ResultService.checkResultFilesName(TASK_ID, tmpFolder.getAbsolutePath()));
+    }
+
+    @Test
+    void shouldPassResultFilesNameCheckWhenCorrectFiles() throws IOException {
+        assertTrue(new File(tmpFolder, "result.txt").createNewFile());
+        assertTrue(new File(tmpFolder, "computed.json").createNewFile());
+
+        assertDoesNotThrow(() -> web2ResultService.checkResultFilesName(TASK_ID, tmpFolder.getAbsolutePath()));
+    }
+
+    @Test
+    void shouldFailResultFilesNameCheckWhenWrongFolder() {
+        final PostComputeException postComputeException = assertThrows(PostComputeException.class,
+                () -> web2ResultService.checkResultFilesName(TASK_ID, "/dummy/folder/that/doesnt/exist"));
+        assertEquals(POST_COMPUTE_FAILED_UNKNOWN_ISSUE, postComputeException.getStatusCause());
+    }
+
+    @Test
+    void shouldFailResultFilesNameCheckWhenFileNameTooLong() throws IOException {
+        assertTrue(new File(tmpFolder, "result-0x0000000000000000000.txt").createNewFile());
+        assertTrue(new File(tmpFolder, "computed.json").createNewFile());
+
+        final PostComputeException postComputeException = assertThrows(PostComputeException.class,
+                () -> web2ResultService.checkResultFilesName(TASK_ID, tmpFolder.getAbsolutePath()));
+        assertEquals(POST_COMPUTE_TOO_LONG_RESULT_FILE_NAME, postComputeException.getStatusCause());
+    }
+    // endregion
 
     //region eventuallyEncryptResult
     @Test
