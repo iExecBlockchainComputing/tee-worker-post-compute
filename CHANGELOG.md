@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Check result files name length before zipping. (#83)
+- Remove `nexus.intra.iex.ec` repository. (#84)
 ### Dependency Upgrades
 - Upgrade to `iexec-common` 8.2.1-NEXT-SNAPSHOT. (#83)
 
