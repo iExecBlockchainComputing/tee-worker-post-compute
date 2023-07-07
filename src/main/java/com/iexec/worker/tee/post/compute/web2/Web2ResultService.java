@@ -23,7 +23,11 @@ import com.iexec.worker.tee.post.compute.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Base64;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.worker.result.ResultUtils.*;
@@ -35,31 +39,67 @@ import static com.iexec.commons.poco.tee.TeeUtils.booleanFromYesNo;
 public class Web2ResultService {
 
     public static final String SLASH_POST_COMPUTE_TMP = File.separator + "post-compute-tmp";
+    private static final int RESULT_FILE_NAME_MAX_LENGTH = 31;
 
     private final UploaderService uploaderService;
     private final EncryptionService encryptionService;
+    private final String iexecOut;
 
     public Web2ResultService() {
         this.uploaderService = new UploaderService();
         this.encryptionService = new EncryptionService();
+        this.iexecOut = IexecFileHelper.SLASH_IEXEC_OUT;
     }
 
-    public Web2ResultService(UploaderService uploaderService, EncryptionService encryptionService) {
+    Web2ResultService(UploaderService uploaderService,
+                      EncryptionService encryptionService,
+                      String iexecOut) {
         this.uploaderService = uploaderService;
         this.encryptionService = encryptionService;
+        this.iexecOut = iexecOut;
     }
 
     /*
      * Manager
      * */
     public void encryptAndUploadResult(String taskId) throws PostComputeException {
+        // check result file names are not too long
+        checkResultFilesName(taskId, iexecOut);
+
         // save zip file to the protected region /post-compute-tmp (temporarily)
-        String iexecOutZipPath = ResultUtils.zipIexecOut(IexecFileHelper.SLASH_IEXEC_OUT, SLASH_POST_COMPUTE_TMP);
+        String iexecOutZipPath = ResultUtils.zipIexecOut(iexecOut, SLASH_POST_COMPUTE_TMP);
         if (iexecOutZipPath.isEmpty()) {
             throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED, "zipIexecOut stage failed");
         }
         String resultPath = eventuallyEncryptResult(iexecOutZipPath);
         uploadResult(taskId, resultPath); //TODO Share result link to beneficiary
+    }
+
+    void checkResultFilesName(String taskId, String iexecOutPath) throws PostComputeException {
+        final AtomicBoolean failed = new AtomicBoolean(false);
+        try {
+            Files.walkFileTree(Paths.get(iexecOutPath), new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    final String fileName = file.getFileName().toString();
+                    if (fileName.length() > RESULT_FILE_NAME_MAX_LENGTH) {
+                        log.error("Too long result file name [chainTaskId:{}, file:{}]", taskId, file);
+                        failed.set(true);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            final String errorMessage = String.format("Can't check result files [chainTaskId:%s]", taskId);
+            log.error(errorMessage, e);
+            throw new PostComputeException(POST_COMPUTE_FAILED_UNKNOWN_ISSUE, errorMessage, e);
+        }
+
+        if (failed.get()) {
+            final String errorMessage = String.format("Too long result file name [chainTaskId:%s]", taskId);
+            throw new PostComputeException(POST_COMPUTE_TOO_LONG_RESULT_FILE_NAME,
+                    errorMessage);
+        }
     }
 
     String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {

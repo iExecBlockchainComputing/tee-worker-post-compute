@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2023
 
+### New Features
+- Check result files name length before zipping. (#83)
+### Dependency Upgrades
+- Upgrade to `iexec-common` 8.2.1-NEXT-SNAPSHOT. (#83)
+
 ## [[8.1.1]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.1.1) 2023-06-23
 
 ### Dependency Upgrades
