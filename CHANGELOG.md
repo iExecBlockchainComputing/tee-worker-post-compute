@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 - Check result files name length before zipping. (#83)
 ### Quality
 - Remove `nexus.intra.iex.ec` repository. (#84)
-- Parameterize build of TEE applications while PR is not started. This allows faster builds. (#85)
+- Parameterize build of TEE applications while PR is not started. This allows faster builds. (#85 #86)
 ### Dependency Upgrades
 - Upgrade to `iexec-common` 8.2.1-NEXT-SNAPSHOT. (#83)
 
