@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to Gradle 8.2.1 with up-to-date plugins. (#89)
 ### Dependency Upgrades
 - Upgrade to `iexec-common` 8.2.1-NEXT-SNAPSHOT. (#83)
-- Upgrade to `jenkins-library` 2.6.0. (#85)
+- Upgrade to `jenkins-library` 2.7.3. (#85 #91)
 - Upgrade to `eclipse-temurin` 11.0.20. (#88)
 - Upgrade to `testcontainers` 1.19.0. (#90)
 
