@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@2.6.0') _
+@Library('global-jenkins-library@2.7.3') _
 
 String repositoryName = 'tee-worker-post-compute'
 
@@ -22,10 +22,7 @@ buildJavaProject(
         shouldPublishDockerImages: true,
         dockerfileDir: '.',
         buildContext: '.',
-        dockerImageRepositoryName: repositoryName,
-        preProductionVisibility: 'docker.io',
-        productionVisibility: Registries.EXTERNAL_DOCKERIO_HOST
-)
+        dockerImageRepositoryName: repositoryName)
 
 // BUILD_TEE parameter only exists if addParameters is true
 // If BUILD_TEE is false, TEE builds won't be executed and we return here
