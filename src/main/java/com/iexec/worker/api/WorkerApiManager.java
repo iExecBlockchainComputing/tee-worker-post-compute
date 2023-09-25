@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.worker.compute.post.worker;
+package com.iexec.worker.api;
 
 import com.iexec.common.utils.EnvUtils;
 import com.iexec.common.utils.FeignBuilder;

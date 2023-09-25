@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.worker.compute.post.worker;
+package com.iexec.worker.api;
 
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.worker.api.ExitMessage;

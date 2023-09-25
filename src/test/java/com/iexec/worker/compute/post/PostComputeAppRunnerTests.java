@@ -17,8 +17,8 @@
 package com.iexec.worker.compute.post;
 
 import com.iexec.common.replicate.ReplicateStatusCause;
-import com.iexec.worker.compute.post.worker.WorkerApiClient;
-import com.iexec.worker.compute.post.worker.WorkerApiManager;
+import com.iexec.worker.api.WorkerApiClient;
+import com.iexec.worker.api.WorkerApiManager;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

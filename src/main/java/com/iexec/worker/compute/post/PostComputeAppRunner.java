@@ -18,7 +18,7 @@ package com.iexec.worker.compute.post;
 
 import com.iexec.common.replicate.ReplicateStatusCause;
 import com.iexec.common.worker.api.ExitMessage;
-import com.iexec.worker.compute.post.worker.WorkerApiManager;
+import com.iexec.worker.api.WorkerApiManager;
 import com.iexec.worker.compute.post.utils.EnvUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;

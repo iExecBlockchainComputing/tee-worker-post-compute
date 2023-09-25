@@ -1,4 +1,4 @@
-package com.iexec.worker.compute.post.worker;
+package com.iexec.worker.api;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

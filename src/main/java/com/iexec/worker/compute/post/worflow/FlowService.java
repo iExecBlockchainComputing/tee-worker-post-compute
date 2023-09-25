@@ -24,8 +24,8 @@ import com.iexec.commons.poco.utils.HashUtils;
 import com.iexec.worker.compute.post.PostComputeException;
 import com.iexec.worker.compute.post.signer.SignerService;
 import com.iexec.worker.compute.post.utils.EnvUtils;
-import com.iexec.worker.compute.post.worker.WorkerApiClient;
-import com.iexec.worker.compute.post.worker.WorkerApiManager;
+import com.iexec.worker.api.WorkerApiClient;
+import com.iexec.worker.api.WorkerApiManager;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
