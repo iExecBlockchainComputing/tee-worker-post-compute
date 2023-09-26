@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `jenkins-library` 2.7.3. (#85 #91)
 - Upgrade to `eclipse-temurin` 11.0.20. (#88)
 - Upgrade to `testcontainers` 1.19.0. (#90)
+- Upgrade to `iexec-commons-poco` 3.1.0. (#93)
+- Upgrade to `iexec-common` 8.3.0. (#93)
 
 ## [[8.1.1]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.1.1) 2023-06-23
 
