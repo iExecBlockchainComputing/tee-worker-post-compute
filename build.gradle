@@ -1,20 +1,19 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
-    id 'io.freefair.lombok' version '6.6.1'
+    id 'io.freefair.lombok' version '8.2.2'
     id 'jacoco'
-    id 'org.sonarqube' version '3.3'
+    id 'org.sonarqube' version '4.2.1.3168'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 ext {
-    jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
     ociImageBase = 'local/' + rootProject.name
     ociImageName = ociImageBase + ':dev'
     ociTeeImageName = ociImageBase + '-unlocked:dev'
     // versions
-    testContainersVersion = '1.16.2'
+    testContainersVersion = '1.19.0'
     mockitoVersion = '4.4.0'
     systemStubsVersion = '2.0.1'
 }
@@ -36,9 +35,6 @@ repositories {
             username nexusUser
             password nexusPassword
         }
-    }
-    maven {
-        url "https://nexus.intra.iex.ec/repository/maven-public/"
     }
     maven { url 'https://jitpack.io' }
 }
@@ -79,6 +75,7 @@ dependencies {
 
     // test
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation "uk.org.webcompere:system-stubs-core:$systemStubsVersion"    // activates env var setting
     testImplementation "uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion" // activates env var setting
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
@@ -108,9 +105,6 @@ tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
 
-jacoco {
-    toolVersion = "0.8.7"
-}
 // sonarqube code coverage requires jacoco XML report
 jacocoTestReport {
     reports {
@@ -119,51 +113,42 @@ jacocoTestReport {
 }
 tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
-def mainClass = 'com.iexec.worker.tee.post.compute.Main'
-
-application {
-    mainClass = mainClass
-}
-
 //gradle run
 application {
     // Define the main class for the application.
-    mainClass = mainClass
+    mainClass.set('com.iexec.worker.compute.post.Main')
 }
 
 // Jar with missing dependencies (app.jar)
 jar {
     manifest {
-        attributes(
-                'Main-Class': mainClass
-        )
+        attributes 'Main-Class': 'com.iexec.worker.compute.post.Main'
     }
 }
 
 // Jar with all dependencies (app-all.jar)
 shadowJar {
-    mainClassName = mainClass
     archiveBaseName.set('app')
     archiveVersion.set('') // remove version from name
 }
 
 ext.jarPathForOCI  = relativePath(tasks.shadowJar.outputs.files.singleFile)
 
-task buildImage(type: Exec) {
+tasks.register('buildImage', Exec) {
     group 'Build'
     description 'Builds an OCI image from a Dockerfile.'
     dependsOn shadowJar
     commandLine 'docker', 'build', '--build-arg', 'jar=' + jarPathForOCI, '-t', ociImageName, '.'
 }
 
-task buildTeeImage(type: Exec) {
+tasks.register('buildSconeImage', Exec) {
     dependsOn buildImage
     environment 'IMG_FROM', ociImageName
     environment 'IMG_TO', ociTeeImageName
     commandLine 'docker/sconify.sh'
 }
 
-task itest(type: Test) {
+tasks.register('itest', Test) {
     group 'Verification'
     description 'Runs the integration tests.'
     dependsOn buildImage
