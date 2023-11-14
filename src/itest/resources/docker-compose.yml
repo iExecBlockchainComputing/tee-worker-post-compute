@@ -8,7 +8,7 @@ services:
     image: wiremock/wiremock
     volumes:
       - ./mappings:/home/wiremock/mappings
-    exposes:
+    expose:
       - "13100"
     command:
       '--port 13100 --verbose'
