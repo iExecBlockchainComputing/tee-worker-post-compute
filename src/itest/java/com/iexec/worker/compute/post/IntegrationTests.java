@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -41,21 +41,19 @@ import java.io.File;
 class IntegrationTests {
 
     public static final String RESOURCES_DIR = "src/itest/resources";
-    public static final String MOCK_WORKER_DOCKER_COMPOSE_YML =
-            RESOURCES_DIR + "/docker-compose.yml";
+    public static final String MOCK_WORKER_DOCKER_COMPOSE_YML = RESOURCES_DIR + "/docker-compose.yml";
     public static final String CONTAINERS_PREFIX = "iexec-";
-    public static final String WORKER_SERVICE_NAME = "worker";
+    private static final String WORKER_SERVICE_NAME = "worker";
+    private static final int WORKER_SERVICE_PORT = 13100;
 
     @Container
-    private static final DockerComposeContainer<?> worker =
-            new DockerComposeContainer<>(CONTAINERS_PREFIX,
-                    new File(MOCK_WORKER_DOCKER_COMPOSE_YML))
-                    .withLocalCompose(true);
+    private static final ComposeContainer worker =
+            new ComposeContainer(CONTAINERS_PREFIX, new File(MOCK_WORKER_DOCKER_COMPOSE_YML))
+                    .withExposedService(WORKER_SERVICE_NAME, WORKER_SERVICE_PORT);
 
     @BeforeEach
     void before() {
-        worker.withLogConsumer(WORKER_SERVICE_NAME, new Slf4jLogConsumer(log) //runtime logs
-                .withPrefix(WORKER_SERVICE_NAME))
+        worker.withLogConsumer(WORKER_SERVICE_NAME, new Slf4jLogConsumer(log).withPrefix(WORKER_SERVICE_NAME))
                 .start();
     }
 
@@ -71,7 +69,7 @@ class IntegrationTests {
         environment.set("RESULT_STORAGE_CALLBACK", "yes");
         environment.set("RESULT_SIGN_WORKER_ADDRESS", "0x0000000000000000000000000000000000000002");
         environment.set("RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY", "0x000000000000000000000000000000000000000000000000000000000000003");
-        environment.set("WORKER_HOST", "localhost:13100");
+        environment.set("WORKER_HOST", worker.getServiceHost(WORKER_SERVICE_NAME, WORKER_SERVICE_PORT) + ":" + worker.getServicePort(WORKER_SERVICE_NAME, WORKER_SERVICE_PORT));
 
         try (MockedStatic<IexecFileHelper> iexecFileHelper = Mockito.mockStatic(IexecFileHelper.class)) {
             final ObjectMapper objectMapper = new ObjectMapper();
