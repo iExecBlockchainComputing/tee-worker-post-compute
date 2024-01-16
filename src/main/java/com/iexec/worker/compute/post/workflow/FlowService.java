@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.worker.compute.post.worflow;
+package com.iexec.worker.compute.post.workflow;
 
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.utils.IexecFileHelper;
