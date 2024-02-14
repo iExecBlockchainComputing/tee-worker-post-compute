@@ -16,7 +16,6 @@
 
 package com.iexec.worker.compute.post;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.utils.IexecFileHelper;
