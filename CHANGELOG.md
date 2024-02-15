@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2024
 
-### Bug Fixes
+### Quality
 
-- Renamame `worflow` package to `workflow`. (#102)
+- Rename `worflow` package to `workflow`. (#102)
+- Rework classes to use `ComputedFile` in methods parameters. (#103)
 
 ## [[8.3.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.3.0) 2024-01-12
 
