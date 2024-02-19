@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2024
 
+### New Features
+
+- Upgrade to scone 5.7.6. (#104)
+
 ### Quality
 
 - Rename `worflow` package to `workflow`. (#102)
