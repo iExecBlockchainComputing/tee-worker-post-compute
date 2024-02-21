@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2024
 
+### New Features
+
+- Upload results on IPFS with a `ResultModel` containing the `enclaveSignature`. (#105)
+
 ### Quality
 
 - Rename `worflow` package to `workflow`. (#102)
