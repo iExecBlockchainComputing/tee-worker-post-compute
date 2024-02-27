@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Dependency Upgrades
 
 - Upgrade to scone 5.7.6. (#104)
+- Upgrade to `iexec-common` 8.4.0. (#106)
 
 ### Quality
 
