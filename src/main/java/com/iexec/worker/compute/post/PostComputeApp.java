@@ -49,12 +49,12 @@ public class PostComputeApp {
         ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
 
         flowService.buildResultDigestInComputedFile(computedFile, shouldCallback);
+        flowService.signComputedFile(computedFile);
 
         if (!shouldCallback) {
             web2ResultService.encryptAndUploadResult(computedFile);
         }
 
-        flowService.signComputedFile(computedFile);
         flowService.sendComputedFileToHost(computedFile);
     }
 }

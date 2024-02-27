@@ -91,9 +91,10 @@ public class UploaderService {
 
         ResultModel resultModel = ResultModel.builder()
                 .chainTaskId(taskId)
+                .deterministHash(computedFile.getResultDigest())
+                .enclaveSignature(computedFile.getEnclaveSignature())
                 .zip(fileToUpload)
                 .build();
-
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", token);

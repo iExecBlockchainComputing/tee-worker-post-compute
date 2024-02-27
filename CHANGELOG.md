@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 
+- Upload results on IPFS with a `ResultModel` containing the `enclaveSignature`. (#105)
+
+### Dependency Upgrades
+
 - Upgrade to scone 5.7.6. (#104)
 
 ### Quality
