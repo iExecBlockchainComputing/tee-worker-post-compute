@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2024
 
+## [[8.4.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.4.0) 2024-02-29
+
 ### New Features
 
 - Upload results on IPFS with a `ResultModel` containing the `enclaveSignature`. (#105)
