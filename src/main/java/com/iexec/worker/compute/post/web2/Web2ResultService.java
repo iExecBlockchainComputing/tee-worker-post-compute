@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.iexec.worker.compute.post.web2;
 
+import com.iexec.common.result.ComputedFile;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.compute.post.PostComputeException;
@@ -62,9 +63,9 @@ public class Web2ResultService {
     /*
      * Manager
      * */
-    public void encryptAndUploadResult(String taskId) throws PostComputeException {
+    public void encryptAndUploadResult(ComputedFile computedFile) throws PostComputeException {
         // check result file names are not too long
-        checkResultFilesName(taskId, iexecOut);
+        checkResultFilesName(computedFile.getTaskId(), iexecOut);
 
         // save zip file to the protected region /post-compute-tmp (temporarily)
         String iexecOutZipPath = ResultUtils.zipIexecOut(iexecOut, SLASH_POST_COMPUTE_TMP);
@@ -72,7 +73,7 @@ public class Web2ResultService {
             throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED, "zipIexecOut stage failed");
         }
         String resultPath = eventuallyEncryptResult(iexecOutZipPath);
-        uploadResult(taskId, resultPath); //TODO Share result link to beneficiary
+        uploadResult(computedFile, resultPath); //TODO Share result link to beneficiary
     }
 
     void checkResultFilesName(String taskId, String iexecOutPath) throws PostComputeException {
@@ -125,7 +126,7 @@ public class Web2ResultService {
         return fileToUpload;
     }
 
-    String uploadResult(String taskId, String fileToUploadPath) throws PostComputeException {
+    String uploadResult(ComputedFile computedFile, String fileToUploadPath) throws PostComputeException {
         log.info("Upload stage started");
         String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
         String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
@@ -135,13 +136,13 @@ public class Web2ResultService {
         switch (storageProvider) {
             case DROPBOX_RESULT_STORAGE_PROVIDER:
                 log.info("Upload stage mode: DROPBOX_STORAGE");
-                String remoteFilename = taskId + ".zip";
+                String remoteFilename = computedFile.getTaskId() + ".zip";
                 resultLink = uploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFilename);
                 break;
             case IPFS_RESULT_STORAGE_PROVIDER:
             default:
                 log.info("Upload stage mode: IPFS_STORAGE");
-                resultLink = uploaderService.uploadToIpfsWithIexecProxy(taskId, storageProxy, storageToken, fileToUploadPath);
+                resultLink = uploaderService.uploadToIpfsWithIexecProxy(computedFile, storageProxy, storageToken, fileToUploadPath);
                 break;
         }
 

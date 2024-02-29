@@ -1,11 +1,27 @@
-package com.iexec.worker.compute.post.worflow;
+/*
+ * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.iexec.worker.compute.post.workflow;
 
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
-import com.iexec.worker.compute.post.PostComputeException;
 import com.iexec.worker.api.WorkerApiClient;
 import com.iexec.worker.api.WorkerApiManager;
+import com.iexec.worker.compute.post.PostComputeException;
 import com.iexec.worker.compute.post.signer.SignerService;
 import feign.FeignException;
 import org.junit.jupiter.api.Assertions;
@@ -43,7 +59,7 @@ class FlowServiceTests {
     void shouldReadComputedFile() {
         try (MockedStatic<IexecFileHelper> iexecFileHelper = Mockito.mockStatic(IexecFileHelper.class)) {
             iexecFileHelper.when(() -> IexecFileHelper.readComputedFile(CHAIN_TASK_ID, IexecFileHelper.SLASH_IEXEC_OUT))
-                    .thenReturn(new ComputedFile());
+                    .thenReturn(ComputedFile.builder().build());
 
             Assertions.assertDoesNotThrow(() -> flowService.readComputedFile(CHAIN_TASK_ID));
         }
@@ -65,7 +81,7 @@ class FlowServiceTests {
     // region buildResultDigestInComputedFile
     @Test
     void shouldBuildResultDigestInComputedFileForWeb2() {
-        final ComputedFile computedFile = new ComputedFile();
+        final ComputedFile computedFile = ComputedFile.builder().build();
         final String resultDigest = "0x123";
 
         try (MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
@@ -79,7 +95,7 @@ class FlowServiceTests {
 
     @Test
     void shouldBuildResultDigestInComputedFileForWeb3() {
-        final ComputedFile computedFile = new ComputedFile();
+        final ComputedFile computedFile = ComputedFile.builder().build();
         final String resultDigest = "0x123";
 
         try (MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
@@ -93,7 +109,7 @@ class FlowServiceTests {
 
     @Test
     void shouldNotBuildResultDigestInComputedFileForWeb2SinceDigestComputationFailed() {
-        final ComputedFile computedFile = new ComputedFile();
+        final ComputedFile computedFile = ComputedFile.builder().build();
 
         try (MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
             resultUtils.when(() -> ResultUtils.computeWeb2ResultDigest(computedFile))
@@ -108,7 +124,7 @@ class FlowServiceTests {
 
     @Test
     void shouldNotBuildResultDigestInComputedFileForWeb3SinceDigestComputationFailed() {
-        final ComputedFile computedFile = new ComputedFile();
+        final ComputedFile computedFile = ComputedFile.builder().build();
 
         try (MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
             resultUtils.when(() -> ResultUtils.computeWeb3ResultDigest(computedFile))
@@ -146,7 +162,7 @@ class FlowServiceTests {
 
     @Test
     void shouldNotSignComputedFileSinceNoWorkerAddress() {
-        final ComputedFile computedFile = new ComputedFile();
+        final ComputedFile computedFile = ComputedFile.builder().build();
 
         final PostComputeException exception = assertThrows(PostComputeException.class, () -> flowService.signComputedFile(computedFile));
         assertEquals(POST_COMPUTE_WORKER_ADDRESS_MISSING, exception.getStatusCause());
@@ -170,7 +186,7 @@ class FlowServiceTests {
     // region sendComputedFileToHost
     @Test
     void shouldSendComputedFileToHost() {
-        final ComputedFile computedFile = new ComputedFile();
+        final ComputedFile computedFile = ComputedFile.builder().build();
 
         WorkerApiClient workerApiClient = mock(WorkerApiClient.class);
         try (MockedStatic<WorkerApiManager> workerApiManager = Mockito.mockStatic(WorkerApiManager.class)) {

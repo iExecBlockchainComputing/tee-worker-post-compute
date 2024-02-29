@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package com.iexec.worker.compute.post;
 
 import com.iexec.common.result.ComputedFile;
-import com.iexec.worker.compute.post.web2.Web2ResultService;
 import com.iexec.worker.compute.post.utils.EnvUtils;
-import com.iexec.worker.compute.post.worflow.FlowService;
+import com.iexec.worker.compute.post.web2.Web2ResultService;
+import com.iexec.worker.compute.post.workflow.FlowService;
 
 import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
 import static com.iexec.commons.poco.tee.TeeUtils.booleanFromYesNo;
@@ -49,12 +49,12 @@ public class PostComputeApp {
         ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
 
         flowService.buildResultDigestInComputedFile(computedFile, shouldCallback);
+        flowService.signComputedFile(computedFile);
 
         if (!shouldCallback) {
-            web2ResultService.encryptAndUploadResult(chainTaskId);
+            web2ResultService.encryptAndUploadResult(computedFile);
         }
 
-        flowService.signComputedFile(computedFile);
         flowService.sendComputedFileToHost(computedFile);
     }
 }
