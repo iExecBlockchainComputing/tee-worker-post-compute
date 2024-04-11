@@ -22,7 +22,7 @@ if (!project.hasProperty('gitBranch')) {
     ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
-if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
+if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
     version += '-NEXT-SNAPSHOT'
 }
 
@@ -37,22 +37,6 @@ repositories {
         }
     }
     maven { url 'https://jitpack.io' }
-}
-
-sourceSets {
-    itest {
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
-    }
-}
-
-configurations {
-    // itest configuration (inherit from test)
-    itestCompile.extendsFrom testCompile
-    itestImplementation.extendsFrom testImplementation
-    // itest configuration (lombok, ..)
-    itestCompileOnly.extendsFrom compileOnly
-    itestAnnotationProcessor.extendsFrom annotationProcessor
 }
 
 dependencies {
@@ -72,22 +56,6 @@ dependencies {
     //rest template
     implementation 'org.springframework:spring-web:5.2.4.RELEASE'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
-
-    // test
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation "uk.org.webcompere:system-stubs-core:$systemStubsVersion"    // activates env var setting
-    testImplementation "uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion" // activates env var setting
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
-    testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
-    testImplementation "org.mockito:mockito-inline:$mockitoVersion" // activates mocking final classes/methods
-
-    // itest only
-    itestImplementation "org.testcontainers:testcontainers:${testContainersVersion}"
-    itestImplementation "org.testcontainers:junit-jupiter:${testContainersVersion}"
-    itestImplementation 'com.github.tomakehurst:wiremock-jre8:2.28.1'
-    itestImplementation 'org.awaitility:awaitility:4.1.1'
-
 }
 
 java {
@@ -102,9 +70,37 @@ tasks.withType(Tar).configureEach {
     enabled = false
 }
 
+testing {
+    suites {
+        configureEach {
+            dependencies {
+                implementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
+                implementation "uk.org.webcompere:system-stubs-core:$systemStubsVersion"    // activates env var setting
+                implementation "uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion" // activates env var setting
+            }
+        }
+        test {
+            useJUnitJupiter()
+            dependencies {
+                implementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+                implementation "org.mockito:mockito-inline:$mockitoVersion" // activates mocking final classes/methods
+            }
+        }
+        itest(JvmTestSuite) {
+            dependencies {
+                implementation project()
+                implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
+                implementation 'com.github.tomakehurst:wiremock-jre8:2.28.1'
+                implementation 'org.awaitility:awaitility:4.1.1'
+                implementation "org.testcontainers:testcontainers:${testContainersVersion}"
+                implementation "org.testcontainers:junit-jupiter:${testContainersVersion}"
+            }
+        }
+    }
+}
+
 tasks.withType(Test).configureEach {
     finalizedBy jacocoTestReport
-    useJUnitPlatform()
 }
 
 // sonarqube code coverage requires jacoco XML report
@@ -134,7 +130,7 @@ shadowJar {
     archiveVersion.set('') // remove version from name
 }
 
-ext.jarPathForOCI  = relativePath(tasks.shadowJar.outputs.files.singleFile)
+ext.jarPathForOCI = relativePath(tasks.shadowJar.outputs.files.singleFile)
 
 tasks.register('buildImage', Exec) {
     group 'Build'
@@ -148,12 +144,4 @@ tasks.register('buildSconeImage', Exec) {
     environment 'IMG_FROM', ociImageName
     environment 'IMG_TO', ociTeeImageName
     commandLine 'docker/sconify.sh'
-}
-
-tasks.register('itest', Test) {
-    group 'Verification'
-    description 'Runs the integration tests.'
-    dependsOn buildImage
-    testClassesDirs = sourceSets.itest.output.classesDirs
-    classpath = sourceSets.itest.runtimeClasspath
 }
