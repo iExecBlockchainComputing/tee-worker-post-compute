@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Configure Gradle JVM Test Suite Plugin. (#109)
 
+### Dependency Upgrades
+
+- Upgrade to Gradle 8.7. (#110)
+
 ## [[8.4.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.4.0) 2024-02-29
 
 ### New Features
