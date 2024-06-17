@@ -105,19 +105,25 @@ public class Web2ResultService {
 
     String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
         log.info("Encryption stage started");
-        String fileToUpload;
         boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
 
         if (!shouldEncrypt) {
             log.info("Encryption stage mode: NO_ENCRYPTION");
-            fileToUpload = inDataFilePath;
-        } else {
-            log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
-            String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY, POST_COMPUTE_ENCRYPTION_PUBLIC_KEY_MISSING);
-            String plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
-            fileToUpload = encryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
+            return inDataFilePath;
         }
 
+        log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
+        final String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY, POST_COMPUTE_ENCRYPTION_PUBLIC_KEY_MISSING);
+        final String plainTextBeneficiaryRsaPublicKey;
+        try {
+            plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
+        } catch (Exception e) {
+            final String errorMessage = "Result encryption public key base64 decoding failed";
+            log.error(errorMessage, e);
+            throw new PostComputeException(POST_COMPUTE_MALFORMED_ENCRYPTION_PUBLIC_KEY, errorMessage);
+        }
+
+        final String fileToUpload = encryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
         if (fileToUpload.isEmpty()) {
             throw new PostComputeException(POST_COMPUTE_ENCRYPTION_FAILED, "Encryption stage failed");
         } else {

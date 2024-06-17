@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2024
 
+### Bug Fixes
+
+- Handle malformed result encryption public key. (#112)
+
 ### Quality
 
 - Configure Gradle JVM Test Suite Plugin. (#109)
