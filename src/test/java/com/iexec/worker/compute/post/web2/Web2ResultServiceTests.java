@@ -27,7 +27,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
@@ -43,6 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
 class Web2ResultServiceTests {
     private final static String TASK_ID = "0x0";
@@ -61,7 +62,6 @@ class Web2ResultServiceTests {
 
     @BeforeEach
     void openMocks() {
-        MockitoAnnotations.openMocks(this);
         this.web2ResultService = spy(new Web2ResultService(uploaderService, encryptionService, tmpFolder.getAbsolutePath()));
     }
 
@@ -160,7 +160,7 @@ class Web2ResultServiceTests {
 
         final String actualFileToUpload = assertDoesNotThrow(() -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
         assertEquals(inDataFilePath, actualFileToUpload);
-        verify(encryptionService, times(0)).encryptData(any(), any(), anyBoolean());
+        verifyNoInteractions(encryptionService);
     }
 
     @Test
@@ -173,7 +173,20 @@ class Web2ResultServiceTests {
 
         final PostComputeException exception = assertThrows(PostComputeException.class, () -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
         assertEquals(POST_COMPUTE_ENCRYPTION_PUBLIC_KEY_MISSING, exception.getStatusCause());
-        verify(encryptionService, times(0)).encryptData(any(), any(), anyBoolean());
+        verifyNoInteractions(encryptionService);
+    }
+
+    @Test
+    void shouldNotEventuallyEncryptResultSinceMalformedPublicKey(EnvironmentVariables environment) {
+        environment.set(
+                RESULT_ENCRYPTION, "yes",
+                RESULT_ENCRYPTION_PUBLIC_KEY, "?"
+        );
+
+        final String inDataFilePath = "inDataFile.zip";
+        final PostComputeException exception = assertThrows(PostComputeException.class, () -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
+        assertEquals(POST_COMPUTE_MALFORMED_ENCRYPTION_PUBLIC_KEY, exception.getStatusCause());
+        verifyNoInteractions(encryptionService);
     }
 
     @Test
