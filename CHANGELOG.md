@@ -2,21 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[8.5.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.5.0) 2024-06-18
+
+### Bug Fixes
+
+- Handle malformed result encryption public key. (#112)
+
+### Quality
+
+- Configure Gradle JVM Test Suite Plugin. (#109)
+
+### Dependency Upgrades
+
+- Upgrade to Gradle 8.7. (#110)
+- Upgrade to `eclipse-temurin:11.0.22_7-jre-focal`. (#111)
+- Upgrade to `iexec-commons-poco` 4.1.0. (#113)
+- Upgrade to `iexec-common` 8.5.0. (#113)
+
 ## [[8.4.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.4.0) 2024-02-29
 
 ### New Features
 
 - Upload results on IPFS with a `ResultModel` containing the `enclaveSignature`. (#105)
 
-### Dependency Upgrades
-
-- Upgrade to scone 5.7.6. (#104)
-- Upgrade to `iexec-common` 8.4.0. (#106)
-
 ### Quality
 
 - Rename `worflow` package to `workflow`. (#102)
 - Rework classes to use `ComputedFile` in methods parameters. (#103)
+
+### Dependency Upgrades
+
+- Upgrade to scone 5.7.6. (#104)
+- Upgrade to `iexec-common` 8.4.0. (#106)
 
 ## [[8.3.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.3.0) 2024-01-12
 
