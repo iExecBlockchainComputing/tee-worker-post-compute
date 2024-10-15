@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Dependency Upgrades
 
+- Upgrade java image to eclipse-temurin 11.0.24_8 #116
 - Upgrade to Gradle 8.7. (#110)
 - Upgrade to `eclipse-temurin:11.0.22_7-jre-focal`. (#111)
 - Upgrade to `iexec-commons-poco` 4.1.0. (#113)
