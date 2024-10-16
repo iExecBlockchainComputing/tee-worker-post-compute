@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Dependency Upgrades
 
-- Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. #116
+- Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. (#116)
 
 ## [[8.5.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.5.0) 2024-06-18
 
