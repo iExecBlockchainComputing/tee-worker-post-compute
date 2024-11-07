@@ -25,10 +25,6 @@ if (addParameters && !params.BUILD_TEE) {
     return
 }
 
-buildGramine(
-    buildInfo: buildInfo,
-    dockerfileDir: 'gramine'
-)
 
 sconeBuildUnlocked(
         nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
