@@ -25,7 +25,6 @@ if (addParameters && !params.BUILD_TEE) {
     return
 }
 
-
 sconeBuildUnlocked(
         nativeImage:     "docker-regis.iex.ec/$repositoryName:$buildInfo.imageTag",
         imageName:       repositoryName,
