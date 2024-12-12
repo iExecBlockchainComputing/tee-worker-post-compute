@@ -96,7 +96,6 @@ public class UploaderService {
         final IexecProxyClient iexecProxyClient = FeignBuilder.createBuilder(Logger.Level.NONE)
                 .target(IexecProxyClient.class, baseUrl);
 
-
         try {
             return iexecProxyClient.uploadToIpfs(token, resultModel);
         } catch (Exception e) {
