@@ -22,25 +22,24 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.users.DbxUserUsersRequests;
 import com.dropbox.core.v2.users.FullAccount;
 import com.iexec.common.result.ComputedFile;
+import com.iexec.common.result.ResultModel;
+import com.iexec.common.utils.FeignBuilder;
+import com.iexec.worker.api.IexecProxyClient;
 import com.iexec.worker.compute.post.PostComputeException;
-import org.junit.jupiter.api.BeforeEach;
+import feign.Logger;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,6 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UploaderServiceTests {
 
     private static final String TASK_ID = "0x0";
@@ -67,11 +67,6 @@ class UploaderServiceTests {
     @InjectMocks
     UploaderService uploaderService;
 
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     //region createDropboxClient
     @Test
     void shouldCreateDropboxClient() {
@@ -83,7 +78,7 @@ class UploaderServiceTests {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "accountId"})
-    void shouldUploadToDropbox(String accountId) throws DbxException, IOException {
+    void shouldUploadToDropbox(final String accountId) throws DbxException, IOException {
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
 
         final DbxClientV2 client = mock(DbxClientV2.class);
@@ -104,7 +99,7 @@ class UploaderServiceTests {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"/test/nothing/here/"})
-    void shouldNotUploadToDropboxSinceFileDoesNotExist(String wrongPath) {
+    void shouldNotUploadToDropboxSinceFileDoesNotExist(final String wrongPath) {
         final PostComputeException exception = assertThrows(PostComputeException.class, () -> uploaderService.uploadToDropBox(wrongPath, DROPBOX_TOKEN, REMOTE_FILENAME));
         assertEquals(POST_COMPUTE_RESULT_FILE_NOT_FOUND, exception.getStatusCause());
         assertEquals("Can't uploadToDropBox (localFile issue) (exiting)", exception.getMessage());
@@ -128,27 +123,26 @@ class UploaderServiceTests {
     }
     //endregion
 
-    //region createRestTemplate
-    @Test
-    void shouldCreateRestTemplate() {
-        assertNotNull(uploaderService.createRestTemplate());
-    }
-    //endregion
-
     //region uploadToIpfsWithIexecProxy
     @Test
     void shouldUploadToIpfsWithIexecProxy() throws IOException {
         final String baseUrl = "baseUrl";
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
         final String responseBody = "responseBody";
+        final IexecProxyClient iexecProxyClient = mock(IexecProxyClient.class);
 
-        final RestTemplate restTemplate = mock(RestTemplate.class);
-        when(restTemplate.postForEntity(eq(baseUrl), any(), eq(String.class))).thenReturn(ResponseEntity.of(Optional.of(responseBody)));
+        try (MockedStatic<FeignBuilder> mockedFeignBuilder = mockStatic(FeignBuilder.class)) {
+            mockedFeignBuilder.when(() -> FeignBuilder.createBuilder(Logger.Level.NONE))
+                    .thenReturn(Mockito.mock(feign.Feign.Builder.class));
+            when(FeignBuilder.createBuilder(Logger.Level.NONE)
+                    .target(IexecProxyClient.class, baseUrl)).thenReturn(iexecProxyClient);
 
-        when(uploaderService.createRestTemplate()).thenReturn(restTemplate);
+            when(iexecProxyClient.uploadToIpfs(any(), any(ResultModel.class))).thenReturn(responseBody);
 
-        final String actualResponseBody = assertDoesNotThrow(() -> uploaderService.uploadToIpfsWithIexecProxy(COMPUTED_FILE, baseUrl, IPFS_TOKEN, fileToUpload));
-        assertEquals(responseBody, actualResponseBody);
+            final String actualResponseBody = assertDoesNotThrow(() -> uploaderService.uploadToIpfsWithIexecProxy(COMPUTED_FILE, baseUrl, IPFS_TOKEN, fileToUpload));
+            assertEquals(responseBody, actualResponseBody);
+            verify(iexecProxyClient, times(1)).uploadToIpfs(eq(IPFS_TOKEN), any(ResultModel.class));
+        }
     }
 
     @Test
@@ -166,15 +160,9 @@ class UploaderServiceTests {
         final String baseUrl = "baseUrl";
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
 
-        final RestTemplate restTemplate = mock(RestTemplate.class);
-        final ResponseEntity<String> response = ResponseEntity.notFound().build();
-        when(restTemplate.postForEntity(eq(baseUrl), any(), eq(String.class))).thenReturn(response);
-
-        when(uploaderService.createRestTemplate()).thenReturn(restTemplate);
-
         final PostComputeException exception = assertThrows(PostComputeException.class, () -> uploaderService.uploadToIpfsWithIexecProxy(COMPUTED_FILE, baseUrl, IPFS_TOKEN, fileToUpload));
         assertEquals(POST_COMPUTE_IPFS_UPLOAD_FAILED, exception.getStatusCause());
-        assertEquals(String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", TASK_ID, response.getStatusCode()), exception.getMessage());
+        assertEquals(String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s]", TASK_ID), exception.getMessage());
     }
     //endregion
 }
