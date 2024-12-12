@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 
-- Replace RestTemplate with Feign Client for Result Proxy Upload. (#120)
+- Replace RestTemplate with Feign client for Result Proxy upload. (#120)
 
 ### Deprecated
 
