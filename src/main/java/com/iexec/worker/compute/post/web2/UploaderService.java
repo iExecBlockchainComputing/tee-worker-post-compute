@@ -21,11 +21,12 @@ import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.result.ResultModel;
-import com.iexec.worker.compute.post.PostComputeException;
-import lombok.extern.slf4j.Slf4j;
 import com.iexec.common.utils.FeignBuilder;
-import com.iexec.worker.api.IexecProxyClient;
+import com.iexec.worker.api.ResultProxyApiClient;
+import com.iexec.worker.compute.post.PostComputeException;
+import feign.FeignException;
 import feign.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,7 +75,7 @@ public class UploaderService {
     //endregion
 
     //region IPFS
-    public String uploadToIpfsWithIexecProxy( final ComputedFile computedFile, final String baseUrl, final String token, final String fileToUploadPath) throws PostComputeException {
+    public String uploadToIpfsWithIexecProxy(final ComputedFile computedFile, final String baseUrl, final String token, final String fileToUploadPath) throws PostComputeException {
         final String taskId = computedFile.getTaskId();
         byte[] fileToUpload;
 
@@ -93,16 +94,16 @@ public class UploaderService {
                 .zip(fileToUpload)
                 .build();
 
-        final IexecProxyClient iexecProxyClient = FeignBuilder.createBuilder(Logger.Level.NONE)
-                .target(IexecProxyClient.class, baseUrl);
+        final ResultProxyApiClient resultProxyApiClient = FeignBuilder.createBuilder(Logger.Level.NONE)
+                .target(ResultProxyApiClient.class, baseUrl);
 
         try {
-            return iexecProxyClient.uploadToIpfs(token, resultModel);
-        } catch (Exception e) {
+            return resultProxyApiClient.uploadToIpfs(token, resultModel);
+        } catch (FeignException e) {
             log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}]", taskId, e);
             throw new PostComputeException(
                     POST_COMPUTE_IPFS_UPLOAD_FAILED,
-                    String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s]", taskId)
+                    String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", taskId, e.status())
             );
         }
     }

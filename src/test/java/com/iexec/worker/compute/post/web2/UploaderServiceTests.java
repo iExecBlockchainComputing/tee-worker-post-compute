@@ -24,16 +24,22 @@ import com.dropbox.core.v2.users.FullAccount;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.result.ResultModel;
 import com.iexec.common.utils.FeignBuilder;
-import com.iexec.worker.api.IexecProxyClient;
+import com.iexec.worker.api.ResultProxyApiClient;
 import com.iexec.worker.compute.post.PostComputeException;
+import feign.Feign;
+import feign.FeignException;
 import feign.Logger;
+import feign.Request;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
@@ -129,19 +135,19 @@ class UploaderServiceTests {
         final String baseUrl = "baseUrl";
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
         final String responseBody = "responseBody";
-        final IexecProxyClient iexecProxyClient = mock(IexecProxyClient.class);
+        final ResultProxyApiClient resultProxyApiClient = mock(ResultProxyApiClient.class);
 
         try (MockedStatic<FeignBuilder> mockedFeignBuilder = mockStatic(FeignBuilder.class)) {
+            final Feign.Builder feignBuilder = mock(Feign.Builder.class);
             mockedFeignBuilder.when(() -> FeignBuilder.createBuilder(Logger.Level.NONE))
-                    .thenReturn(Mockito.mock(feign.Feign.Builder.class));
-            when(FeignBuilder.createBuilder(Logger.Level.NONE)
-                    .target(IexecProxyClient.class, baseUrl)).thenReturn(iexecProxyClient);
+                    .thenReturn(feignBuilder);
+            when(feignBuilder.target(ResultProxyApiClient.class, baseUrl)).thenReturn(resultProxyApiClient);
 
-            when(iexecProxyClient.uploadToIpfs(any(), any(ResultModel.class))).thenReturn(responseBody);
+            when(resultProxyApiClient.uploadToIpfs(any(), any(ResultModel.class))).thenReturn(responseBody);
 
             final String actualResponseBody = assertDoesNotThrow(() -> uploaderService.uploadToIpfsWithIexecProxy(COMPUTED_FILE, baseUrl, IPFS_TOKEN, fileToUpload));
             assertEquals(responseBody, actualResponseBody);
-            verify(iexecProxyClient, times(1)).uploadToIpfs(eq(IPFS_TOKEN), any(ResultModel.class));
+            verify(resultProxyApiClient).uploadToIpfs(eq(IPFS_TOKEN), any(ResultModel.class));
         }
     }
 
@@ -159,10 +165,28 @@ class UploaderServiceTests {
     void shouldNotUploadToIpfsWithIexecProxySincePostFailed() throws IOException {
         final String baseUrl = "baseUrl";
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
+        final ResultProxyApiClient resultProxyApiClient = mock(ResultProxyApiClient.class);
 
-        final PostComputeException exception = assertThrows(PostComputeException.class, () -> uploaderService.uploadToIpfsWithIexecProxy(COMPUTED_FILE, baseUrl, IPFS_TOKEN, fileToUpload));
-        assertEquals(POST_COMPUTE_IPFS_UPLOAD_FAILED, exception.getStatusCause());
-        assertEquals(String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s]", TASK_ID), exception.getMessage());
+        try (MockedStatic<FeignBuilder> mockedFeignBuilder = mockStatic(FeignBuilder.class)) {
+            final Feign.Builder feignBuilder = mock(Feign.Builder.class);
+            mockedFeignBuilder.when(() -> FeignBuilder.createBuilder(Logger.Level.NONE))
+                    .thenReturn(feignBuilder);
+            when(feignBuilder.target(ResultProxyApiClient.class, baseUrl)).thenReturn(resultProxyApiClient);
+
+            FeignException feignException = FeignException.errorStatus(
+                    "uploadToIpfs",
+                    feign.Response.builder()
+                            .status(500)
+                            .reason("Internal Server Error")
+                            .request(Request.create(Request.HttpMethod.POST, "", java.util.Collections.emptyMap(), null, null, null))
+                            .build()
+            );
+            when(resultProxyApiClient.uploadToIpfs(any(), any(ResultModel.class))).thenThrow(feignException);
+
+            final PostComputeException exception = assertThrows(PostComputeException.class, () -> uploaderService.uploadToIpfsWithIexecProxy(COMPUTED_FILE, baseUrl, IPFS_TOKEN, fileToUpload));
+            assertEquals(POST_COMPUTE_IPFS_UPLOAD_FAILED, exception.getStatusCause());
+            assertEquals(String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", TASK_ID, feignException.status()), exception.getMessage());
+        }
     }
     //endregion
 }

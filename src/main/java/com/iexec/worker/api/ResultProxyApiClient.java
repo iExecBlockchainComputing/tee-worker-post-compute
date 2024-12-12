@@ -21,7 +21,8 @@ import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
 
-public interface IexecProxyClient {
+
+public interface ResultProxyApiClient {
 
     @Headers("Authorization: {authorization}")
     @RequestLine("POST /v1/results")
