@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2024
 
+### New Features
+
+- Replace RestTemplate with Feign client for Result Proxy upload. (#120)
+
 ### Deprecated
 
 - Stop building Gramine TEE image in Jenkins Pipeline. (#118)

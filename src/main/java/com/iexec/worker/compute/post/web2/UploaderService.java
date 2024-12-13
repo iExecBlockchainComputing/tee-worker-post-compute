@@ -21,14 +21,12 @@ import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.result.ResultModel;
+import com.iexec.common.utils.FeignBuilder;
+import com.iexec.worker.api.ResultProxyApiClient;
 import com.iexec.worker.compute.post.PostComputeException;
+import feign.FeignException;
+import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,12 +44,12 @@ public class UploaderService {
         this.dropBoxService = new DropBoxService();
     }
 
-    public UploaderService(DropBoxService dropBoxService) {
+    public UploaderService(final DropBoxService dropBoxService) {
         this.dropBoxService = dropBoxService;
     }
 
     //region Dropbox
-    public String uploadToDropBox(String localFilePath, String dropboxAccessToken, String remoteFilename) throws PostComputeException {
+    public String uploadToDropBox(final String localFilePath, final String dropboxAccessToken, final String remoteFilename) throws PostComputeException {
         if (localFilePath == null || !new File(localFilePath).exists()) {
             throw new PostComputeException(POST_COMPUTE_RESULT_FILE_NOT_FOUND, "Can't uploadToDropBox (localFile issue) (exiting)");
         }
@@ -71,13 +69,13 @@ public class UploaderService {
         return dropBoxService.uploadFile(client, new File(localFilePath), "/results/" + remoteFilename);
     }
 
-    DbxClientV2 createDropboxClient(String dropboxAccessToken, DbxRequestConfig config) {
+    DbxClientV2 createDropboxClient(final String dropboxAccessToken, final DbxRequestConfig config) {
         return new DbxClientV2(config, dropboxAccessToken);
     }
     //endregion
 
     //region IPFS
-    public String uploadToIpfsWithIexecProxy(ComputedFile computedFile, String baseUrl, String token, String fileToUploadPath) throws PostComputeException {
+    public String uploadToIpfsWithIexecProxy(final ComputedFile computedFile, final String baseUrl, final String token, final String fileToUploadPath) throws PostComputeException {
         final String taskId = computedFile.getTaskId();
         byte[] fileToUpload;
 
@@ -89,38 +87,25 @@ public class UploaderService {
                     String.format("Can't uploadToIpfsWithIexecProxy (missing filePath to upload) [taskId:%s, fileToUploadPath:%s]", taskId, fileToUploadPath));
         }
 
-        ResultModel resultModel = ResultModel.builder()
+        final ResultModel resultModel = ResultModel.builder()
                 .chainTaskId(taskId)
                 .deterministHash(computedFile.getResultDigest())
                 .enclaveSignature(computedFile.getEnclaveSignature())
                 .zip(fileToUpload)
                 .build();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token);
+        final ResultProxyApiClient resultProxyApiClient = FeignBuilder.createBuilder(Logger.Level.HEADERS)
+                .target(ResultProxyApiClient.class, baseUrl);
 
-        HttpEntity<ResultModel> request = new HttpEntity<>(resultModel, headers);
-
-        HttpStatus statusCode = null;
         try {
-            ResponseEntity<String> response = createRestTemplate().postForEntity(baseUrl, request, String.class);
-            statusCode = response.getStatusCode();
-
-            if (statusCode.is2xxSuccessful()) {
-                return response.getBody();
-            }
-        } catch (RestClientException e) {
+            return resultProxyApiClient.uploadToIpfs(token, resultModel);
+        } catch (FeignException e) {
             log.error("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:{}]", taskId, e);
+            throw new PostComputeException(
+                    POST_COMPUTE_IPFS_UPLOAD_FAILED,
+                    String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", taskId, e.status())
+            );
         }
-
-        throw new PostComputeException(
-                POST_COMPUTE_IPFS_UPLOAD_FAILED,
-                String.format("Can't uploadToIpfsWithIexecProxy (result proxy issue)[taskId:%s, status:%s]", taskId, statusCode)
-        );
-    }
-
-    RestTemplate createRestTemplate() {
-        return new RestTemplate();
     }
     //endregion
 
