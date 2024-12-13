@@ -139,7 +139,7 @@ class UploaderServiceTests {
 
         try (MockedStatic<FeignBuilder> mockedFeignBuilder = mockStatic(FeignBuilder.class)) {
             final Feign.Builder feignBuilder = mock(Feign.Builder.class);
-            mockedFeignBuilder.when(() -> FeignBuilder.createBuilder(Logger.Level.NONE))
+            mockedFeignBuilder.when(() -> FeignBuilder.createBuilder(Logger.Level.HEADERS))
                     .thenReturn(feignBuilder);
             when(feignBuilder.target(ResultProxyApiClient.class, baseUrl)).thenReturn(resultProxyApiClient);
 
@@ -169,7 +169,7 @@ class UploaderServiceTests {
 
         try (MockedStatic<FeignBuilder> mockedFeignBuilder = mockStatic(FeignBuilder.class)) {
             final Feign.Builder feignBuilder = mock(Feign.Builder.class);
-            mockedFeignBuilder.when(() -> FeignBuilder.createBuilder(Logger.Level.NONE))
+            mockedFeignBuilder.when(() -> FeignBuilder.createBuilder(Logger.Level.HEADERS))
                     .thenReturn(feignBuilder);
             when(feignBuilder.target(ResultProxyApiClient.class, baseUrl)).thenReturn(resultProxyApiClient);
 
