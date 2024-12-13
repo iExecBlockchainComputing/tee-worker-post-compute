@@ -132,7 +132,7 @@ class UploaderServiceTests {
     //region uploadToIpfsWithIexecProxy
     @Test
     void shouldUploadToIpfsWithIexecProxy() throws IOException {
-        final String baseUrl = "baseUrl";
+        final String baseUrl = "http://localhost";
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
         final String responseBody = "responseBody";
         final ResultProxyApiClient resultProxyApiClient = mock(ResultProxyApiClient.class);
@@ -153,7 +153,7 @@ class UploaderServiceTests {
 
     @Test
     void shouldNotUploadToIpfsWithIexecProxySinceCantReadFile() {
-        final String baseUrl = "baseUrl";
+        final String baseUrl = "http://localhost";
         final String fileToUpload = "/this/file/does/not/exist";
 
         final PostComputeException exception = assertThrows(PostComputeException.class, () -> uploaderService.uploadToIpfsWithIexecProxy(COMPUTED_FILE, baseUrl, IPFS_TOKEN, fileToUpload));
@@ -163,7 +163,7 @@ class UploaderServiceTests {
 
     @Test
     void shouldNotUploadToIpfsWithIexecProxySincePostFailed() throws IOException {
-        final String baseUrl = "baseUrl";
+        final String baseUrl = "http://localhost";
         final String fileToUpload = Files.createFile(Path.of(tmpFolder.getAbsolutePath(), "fileToUpload.zip")).toString();
         final ResultProxyApiClient resultProxyApiClient = mock(ResultProxyApiClient.class);
 

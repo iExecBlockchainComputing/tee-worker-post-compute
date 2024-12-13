@@ -23,9 +23,8 @@ import feign.RequestLine;
 
 
 public interface ResultProxyApiClient {
-
-    @Headers("Authorization: {authorization}")
     @RequestLine("POST /v1/results")
+    @Headers("Authorization: {authorization}")
     String uploadToIpfs(
             @Param("authorization") String authorization,
             ResultModel resultModel);

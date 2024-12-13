@@ -94,7 +94,7 @@ public class UploaderService {
                 .zip(fileToUpload)
                 .build();
 
-        final ResultProxyApiClient resultProxyApiClient = FeignBuilder.createBuilder(Logger.Level.NONE)
+        final ResultProxyApiClient resultProxyApiClient = FeignBuilder.createBuilder(Logger.Level.HEADERS)
                 .target(ResultProxyApiClient.class, baseUrl);
 
         try {
