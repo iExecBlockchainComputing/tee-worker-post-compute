@@ -17,7 +17,8 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. (#116)
 - Upgrade to Gradle 8.10.2. (#117)
 - Upgrade to `testcontainers` 1.20.4. (#119)
-- Upgrade to `iexec-commons-poco` 4.2.0 and to `iexec-common` 8.6.0. (#121)
+- Upgrade to `iexec-commons-poco` 4.2.0. (#121)
+- Upgrade to `iexec-common` 8.6.0. (#121)
 
 ## [[8.5.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.5.0) 2024-06-18
 
