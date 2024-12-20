@@ -1,11 +1,11 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
-    id 'io.freefair.lombok' version '8.6'
+    id 'io.freefair.lombok' version '8.10.2'
     id 'jacoco'
-    id 'org.sonarqube' version '5.0.0.4638'
+    id 'org.sonarqube' version '5.1.0.4882'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.3'
 }
 
 ext {
@@ -13,7 +13,7 @@ ext {
     ociImageName = ociImageBase + ':dev'
     ociTeeImageName = ociImageBase + '-unlocked:dev'
     // versions
-    testContainersVersion = '1.19.0'
+    testContainersVersion = '1.20.4'
     mockitoVersion = '4.4.0'
     systemStubsVersion = '2.0.1'
 }
@@ -53,9 +53,6 @@ dependencies {
     // Apache Commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
-    //rest template
-    implementation 'org.springframework:spring-web:5.2.4.RELEASE'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 }
 
 java {
