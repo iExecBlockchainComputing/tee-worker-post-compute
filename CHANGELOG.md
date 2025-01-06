@@ -4,10 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/vNEXT) 2025
 
-### Quality
-
-- Update source and target compatibility to Java 17. (#124)
-
 ### Dependency Upgrades
 
 - Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#124)
