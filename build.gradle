@@ -14,7 +14,7 @@ ext {
     ociTeeImageName = ociImageBase + '-unlocked:dev'
     // versions
     testContainersVersion = '1.20.4'
-    mockitoVersion = '4.4.0'
+    springBootVersion = '3.0.13'
     systemStubsVersion = '2.0.1'
 }
 
@@ -40,6 +40,8 @@ repositories {
 }
 
 dependencies {
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
     // iexec
     implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
@@ -51,7 +53,7 @@ dependencies {
     implementation 'com.dropbox.core:dropbox-core-sdk:3.1.1'
 
     // Apache Commons-lang3
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.commons:commons-lang3'
 
 }
 
@@ -71,7 +73,7 @@ testing {
     suites {
         configureEach {
             dependencies {
-                implementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
+                implementation "org.mockito:mockito-junit-jupiter"
                 implementation "uk.org.webcompere:system-stubs-core:$systemStubsVersion"    // activates env var setting
                 implementation "uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion" // activates env var setting
             }
@@ -79,8 +81,8 @@ testing {
         test {
             useJUnitJupiter()
             dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter:5.8.2'
-                implementation "org.mockito:mockito-inline:$mockitoVersion" // activates mocking final classes/methods
+                implementation 'org.junit.jupiter:junit-jupiter'
+                implementation "org.mockito:mockito-inline" // activates mocking final classes/methods
             }
         }
         itest(JvmTestSuite) {
