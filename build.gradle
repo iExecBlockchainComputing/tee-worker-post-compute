@@ -14,7 +14,7 @@ ext {
     ociTeeImageName = ociImageBase + '-unlocked:dev'
     // versions
     testContainersVersion = '1.20.4'
-    springBootVersion = '3.0.13'
+    springBootVersion = '3.3.8'
     systemStubsVersion = '2.0.1'
 }
 
