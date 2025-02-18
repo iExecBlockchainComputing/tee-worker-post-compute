@@ -10,8 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Dependency Upgrades
 
-- Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#124)
-- Upgrade to Spring Boot 3.0.13. (#124)
+- Upgrade to Java 17. (#124)
 - Upgrade to Spring Boot 3.3.8. (#126)
 
 ## [[8.6.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.6.0) 2024-12-20
