@@ -65,7 +65,7 @@ class Web2ResultServiceTests {
 
     //region encryptAndUploadResult
     @Test
-    void shouldEncryptAndUploadResult(EnvironmentVariables environment) throws PostComputeException, GeneralSecurityException, IOException {
+    void shouldEncryptAndUploadResult(final EnvironmentVariables environment) throws PostComputeException, GeneralSecurityException, IOException {
         environment.set(
                 RESULT_STORAGE_TOKEN, "token"
         );
@@ -76,7 +76,7 @@ class Web2ResultServiceTests {
         doReturn(resultPath).when(web2ResultService).eventuallyEncryptResult(zipPath);  // Using `doReturn().when()` to avoid nasty side effects
         when(web2ResultService.uploadResult(COMPUTED_FILE, resultPath)).thenReturn("");
 
-        try (MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
+        try (final MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
             resultUtils.when(() -> ResultUtils.zipIexecOut(any(), any()))
                     .thenReturn(zipPath);
 
@@ -88,7 +88,7 @@ class Web2ResultServiceTests {
     void shouldNotEncryptAndUploadResultSinceCantZip() {
         final String zipPath = "";
 
-        try (MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
+        try (final MockedStatic<ResultUtils> resultUtils = Mockito.mockStatic(ResultUtils.class)) {
             resultUtils.when(() -> ResultUtils.zipIexecOut(any(), any()))
                     .thenReturn(zipPath);
 
@@ -133,7 +133,7 @@ class Web2ResultServiceTests {
 
     //region eventuallyEncryptResult
     @Test
-    void shouldEventuallyEncryptResult(EnvironmentVariables environment) {
+    void shouldEventuallyEncryptResult(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "yes",
                 RESULT_ENCRYPTION_PUBLIC_KEY, "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FnOEFNSUlDQ2dLQ0FnRUF2clVtUnVMV3UvMm83ci8xSW9ocQp6RkJTUE93T0xYVlJoZjhBUThDcmZnZWRacE1Ld3huWUk4UGJad09oWEpIMzZLZk1UcnhRVjR3aFhlalZqNjdDCjFaMkFMZjBPcC84dXlKY3JuTlhUYXhhVmY0c1Y0RXB0eTBocTNLSGtuU0J0cTBSOENTV1IxeFI4RGNpR1hJaGgKTkllVkZaazZOS291czZ2Tkt6cWZCbDJWMVorRzJ5eEhCLzNiVE0yWjUyMXgxOUZpWUlkUk91TVlwRFRnVXllagpZTll4Vk5CZlVSWmFHcGhPS1FqYThYWkVuSVR1b0toWVpZclc1NVhuVWM5NHQ4TDgrbzgzVmY0OU9oc1JKQStlCk9IOEFSZGhkN3V0c1lwOVBzcko0bFE3d3N5cFhzNWNpQ0Q3T1c4Y3MvbFFEYk9HRHlPZVlMb0pOeUpWQ1lIUWsKSVR4QTluaWE0aU9iNjdaRUN1UkpCVk01aFYreFBzUkRFdlJERnZKRXA0ZXMwbjhJRDcvOW4reEZFNlZJSFpybgpnUUUrYXA0Vm13Qk8xa3d4K2RhZGNvSlNIdUhyU2FXUGpFRUZ0R0RNNmROTzIxTWdNMlZzeDNxSFdpd2NkbFVzCjI3Ym9HMGhyTlp4d2g2UjdHWmJSNDEwcWN1aXQ5TUw1R1ZSQ0QwaFNpd2lFNDJyb09aRkV1ck9KY2x0K3lGVy8KQW9wV3FtYkkvYmxjZ3VEdk5pT21LRTdCNFkycU9sSC9ma0hZbXN1aDAwOFVRT1ZUcXpYbUFtaTlqNzNiejlmeQpuN1RvS3FabUErYTdkS0pYUTdlNXM2b0VHeDc3Wlc0MzZ4SjF4MTg2MkJVVVgxNGdLOWoyTzVzU0RsTzBadTA5CkdiRUFIZlFUb3EyOTBIUENFeTBydWMwQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ"
@@ -142,7 +142,7 @@ class Web2ResultServiceTests {
         final String inDataFilePath = "inDataFile.zip";
         final String fileToUpload = "fileToUpload.zip";
 
-        try (MockedStatic<EncryptionHelper> encryptionHelper = Mockito.mockStatic(EncryptionHelper.class)) {
+        try (final MockedStatic<EncryptionHelper> encryptionHelper = Mockito.mockStatic(EncryptionHelper.class)) {
             encryptionHelper.when(() -> EncryptionHelper.encryptData(eq(inDataFilePath), any(), eq(true)))
                     .thenReturn(fileToUpload);
             final String actualFileToUpload = assertDoesNotThrow(() -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
@@ -152,7 +152,7 @@ class Web2ResultServiceTests {
     }
 
     @Test
-    void shouldNotEventuallyEncryptResultSinceNoEncryptionNeeded(EnvironmentVariables environment) {
+    void shouldNotEventuallyEncryptResultSinceNoEncryptionNeeded(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "no"
         );
@@ -164,7 +164,7 @@ class Web2ResultServiceTests {
     }
 
     @Test
-    void shouldNotEventuallyEncryptResultSinceNoPublicKey(EnvironmentVariables environment) {
+    void shouldNotEventuallyEncryptResultSinceNoPublicKey(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "yes"
         );
@@ -176,7 +176,7 @@ class Web2ResultServiceTests {
     }
 
     @Test
-    void shouldNotEventuallyEncryptResultSinceMalformedPublicKey(EnvironmentVariables environment) {
+    void shouldNotEventuallyEncryptResultSinceMalformedPublicKey(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "yes",
                 RESULT_ENCRYPTION_PUBLIC_KEY, "?"
@@ -188,7 +188,7 @@ class Web2ResultServiceTests {
     }
 
     @Test
-    void shouldNotEventuallyEncryptResultSinceEmptyFileToUpload(EnvironmentVariables environment) {
+    void shouldNotEventuallyEncryptResultSinceEmptyFileToUpload(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "yes",
                 RESULT_ENCRYPTION_PUBLIC_KEY, "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FnOEFNSUlDQ2dLQ0FnRUF2clVtUnVMV3UvMm83ci8xSW9ocQp6RkJTUE93T0xYVlJoZjhBUThDcmZnZWRacE1Ld3huWUk4UGJad09oWEpIMzZLZk1UcnhRVjR3aFhlalZqNjdDCjFaMkFMZjBPcC84dXlKY3JuTlhUYXhhVmY0c1Y0RXB0eTBocTNLSGtuU0J0cTBSOENTV1IxeFI4RGNpR1hJaGgKTkllVkZaazZOS291czZ2Tkt6cWZCbDJWMVorRzJ5eEhCLzNiVE0yWjUyMXgxOUZpWUlkUk91TVlwRFRnVXllagpZTll4Vk5CZlVSWmFHcGhPS1FqYThYWkVuSVR1b0toWVpZclc1NVhuVWM5NHQ4TDgrbzgzVmY0OU9oc1JKQStlCk9IOEFSZGhkN3V0c1lwOVBzcko0bFE3d3N5cFhzNWNpQ0Q3T1c4Y3MvbFFEYk9HRHlPZVlMb0pOeUpWQ1lIUWsKSVR4QTluaWE0aU9iNjdaRUN1UkpCVk01aFYreFBzUkRFdlJERnZKRXA0ZXMwbjhJRDcvOW4reEZFNlZJSFpybgpnUUUrYXA0Vm13Qk8xa3d4K2RhZGNvSlNIdUhyU2FXUGpFRUZ0R0RNNmROTzIxTWdNMlZzeDNxSFdpd2NkbFVzCjI3Ym9HMGhyTlp4d2g2UjdHWmJSNDEwcWN1aXQ5TUw1R1ZSQ0QwaFNpd2lFNDJyb09aRkV1ck9KY2x0K3lGVy8KQW9wV3FtYkkvYmxjZ3VEdk5pT21LRTdCNFkycU9sSC9ma0hZbXN1aDAwOFVRT1ZUcXpYbUFtaTlqNzNiejlmeQpuN1RvS3FabUErYTdkS0pYUTdlNXM2b0VHeDc3Wlc0MzZ4SjF4MTg2MkJVVVgxNGdLOWoyTzVzU0RsTzBadTA5CkdiRUFIZlFUb3EyOTBIUENFeTBydWMwQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ"
@@ -197,7 +197,7 @@ class Web2ResultServiceTests {
         final String inDataFilePath = "inDataFile.zip";
         final String fileToUpload = "";
 
-        try (MockedStatic<EncryptionHelper> encryptionHelper = Mockito.mockStatic(EncryptionHelper.class)) {
+        try (final MockedStatic<EncryptionHelper> encryptionHelper = Mockito.mockStatic(EncryptionHelper.class)) {
             encryptionHelper.when(() -> EncryptionHelper.encryptData(eq(inDataFilePath), any(), eq(true)))
                     .thenReturn(fileToUpload);
             final PostComputeException exception = assertThrows(PostComputeException.class, () -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
@@ -210,7 +210,7 @@ class Web2ResultServiceTests {
 
     //region uploadResult
     @Test
-    void shouldUploadResultOnDropboxWithoutStorageProxy(EnvironmentVariables environment) throws PostComputeException {
+    void shouldUploadResultOnDropboxWithoutStorageProxy(final EnvironmentVariables environment) throws PostComputeException {
         final String storageToken = "storageToken";
         final String fileToUploadPath = "fileToUpload.zip";
         final String remoteFileName = TASK_ID + ".zip";
@@ -231,7 +231,7 @@ class Web2ResultServiceTests {
     This should work exactly as `shouldUploadResultOnDropboxWithoutStorageProxy`.
      */
     @Test
-    void shouldUploadResultOnDropboxWithStorageProxy(EnvironmentVariables environment) throws PostComputeException {
+    void shouldUploadResultOnDropboxWithStorageProxy(final EnvironmentVariables environment) throws PostComputeException {
         final String storageToken = "storageToken";
         final String fileToUploadPath = "fileToUpload.zip";
         final String remoteFileName = TASK_ID + ".zip";
@@ -250,7 +250,7 @@ class Web2ResultServiceTests {
     }
 
     @Test
-    void shouldUploadResultOnIpfsWithoutStorageProxy(@NotNull EnvironmentVariables environment) throws PostComputeException {
+    void shouldUploadResultOnIpfsWithoutStorageProxy(@NotNull final EnvironmentVariables environment) throws PostComputeException {
         final String storageToken = "storageToken";
         final String storageProxy = "";
         final String fileToUploadPath = "fileToUpload.zip";
@@ -268,7 +268,7 @@ class Web2ResultServiceTests {
     }
 
     @Test
-    void shouldUploadResultOnIpfsWithStorageProxy(@NotNull EnvironmentVariables environment) throws PostComputeException {
+    void shouldUploadResultOnIpfsWithStorageProxy(@NotNull final EnvironmentVariables environment) throws PostComputeException {
         final String storageToken = "storageToken";
         final String storageProxy = "storageProxy";
         final String fileToUploadPath = "fileToUpload.zip";
@@ -291,7 +291,7 @@ class Web2ResultServiceTests {
     `shouldUploadResultOnIpfsWithoutStorageProxy`.
      */
     @Test
-    void shouldUploadResultOnDefaultWithoutStorageProxy(@NotNull EnvironmentVariables environment) throws PostComputeException {
+    void shouldUploadResultOnDefaultWithoutStorageProxy(@NotNull final EnvironmentVariables environment) throws PostComputeException {
         final String storageToken = "storageToken";
         final String storageProxy = "";
         final String fileToUploadPath = "fileToUpload.zip";
@@ -312,7 +312,7 @@ class Web2ResultServiceTests {
     `shouldUploadResultOnIpfsWithStorageProxy`.
      */
     @Test
-    void shouldUploadResultOnDefaultsWithStorageProxy(@NotNull EnvironmentVariables environment) throws PostComputeException {
+    void shouldUploadResultOnDefaultsWithStorageProxy(@NotNull final EnvironmentVariables environment) throws PostComputeException {
         final String storageToken = "storageToken";
         final String storageProxy = "storageProxy";
         final String fileToUploadPath = "fileToUpload.zip";

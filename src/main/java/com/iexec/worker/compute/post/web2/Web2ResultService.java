@@ -62,26 +62,26 @@ public class Web2ResultService {
     /*
      * Manager
      * */
-    public void encryptAndUploadResult(ComputedFile computedFile) throws PostComputeException, GeneralSecurityException, IOException {
+    public void encryptAndUploadResult(final ComputedFile computedFile) throws PostComputeException, GeneralSecurityException, IOException {
         // check result file names are not too long
         checkResultFilesName(computedFile.getTaskId(), iexecOut);
 
         // save zip file to the protected region /post-compute-tmp (temporarily)
-        String iexecOutZipPath = ResultUtils.zipIexecOut(iexecOut, SLASH_POST_COMPUTE_TMP);
+        final String iexecOutZipPath = ResultUtils.zipIexecOut(iexecOut, SLASH_POST_COMPUTE_TMP);
         if (iexecOutZipPath.isEmpty()) {
             throw new PostComputeException(POST_COMPUTE_OUT_FOLDER_ZIP_FAILED, "zipIexecOut stage failed");
         }
-        String resultPath = eventuallyEncryptResult(iexecOutZipPath);
+        final String resultPath = eventuallyEncryptResult(iexecOutZipPath);
         uploadResult(computedFile, resultPath); //TODO Share result link to beneficiary
     }
 
-    void checkResultFilesName(String taskId, String iexecOutPath) throws PostComputeException {
+    void checkResultFilesName(final String taskId, final String iexecOutPath) throws PostComputeException {
         final AtomicBoolean failed = new AtomicBoolean(false);
         try {
             Files.walkFileTree(Paths.get(iexecOutPath), new SimpleFileVisitor<>() {
                 @NotNull
                 @Override
-                public FileVisitResult visitFile(Path file, @NotNull BasicFileAttributes attrs) {
+                public FileVisitResult visitFile(final Path file, @NotNull final BasicFileAttributes attrs) {
                     final String fileName = file.getFileName().toString();
                     if (fileName.length() > RESULT_FILE_NAME_MAX_LENGTH) {
                         log.error("Too long result file name [chainTaskId:{}, file:{}]", taskId, file);
@@ -103,9 +103,9 @@ public class Web2ResultService {
         }
     }
 
-    String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException, GeneralSecurityException, IOException {
+    String eventuallyEncryptResult(final String inDataFilePath) throws PostComputeException, GeneralSecurityException, IOException {
         log.info("Encryption stage started");
-        boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
+        final boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
 
         if (!shouldEncrypt) {
             log.info("Encryption stage mode: NO_ENCRYPTION");
@@ -132,17 +132,17 @@ public class Web2ResultService {
         return fileToUpload;
     }
 
-    String uploadResult(ComputedFile computedFile, String fileToUploadPath) throws PostComputeException {
+    String uploadResult(final ComputedFile computedFile, final String fileToUploadPath) throws PostComputeException {
         log.info("Upload stage started");
-        String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
-        String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
-        String storageToken = EnvUtils.getEnvVarOrThrow(RESULT_STORAGE_TOKEN, POST_COMPUTE_STORAGE_TOKEN_MISSING);
+        final String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
+        final String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
+        final String storageToken = EnvUtils.getEnvVarOrThrow(RESULT_STORAGE_TOKEN, POST_COMPUTE_STORAGE_TOKEN_MISSING);
 
         String resultLink = "";
         switch (storageProvider) {
             case DROPBOX_RESULT_STORAGE_PROVIDER:
                 log.info("Upload stage mode: DROPBOX_STORAGE");
-                String remoteFilename = computedFile.getTaskId() + ".zip";
+                final String remoteFilename = computedFile.getTaskId() + ".zip";
                 resultLink = uploaderService.uploadToDropBox(fileToUploadPath, storageToken, remoteFilename);
                 break;
             case IPFS_RESULT_STORAGE_PROVIDER:
