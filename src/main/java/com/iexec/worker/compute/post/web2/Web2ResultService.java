@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,19 @@
 package com.iexec.worker.compute.post.web2;
 
 import com.iexec.common.result.ComputedFile;
+import com.iexec.common.security.EncryptionHelper;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.compute.post.PostComputeException;
 import com.iexec.worker.compute.post.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.GeneralSecurityException;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -43,27 +46,23 @@ public class Web2ResultService {
     private static final int RESULT_FILE_NAME_MAX_LENGTH = 31;
 
     private final UploaderService uploaderService;
-    private final EncryptionService encryptionService;
     private final String iexecOut;
 
     public Web2ResultService() {
         this.uploaderService = new UploaderService();
-        this.encryptionService = new EncryptionService();
         this.iexecOut = IexecFileHelper.SLASH_IEXEC_OUT;
     }
 
     Web2ResultService(UploaderService uploaderService,
-                      EncryptionService encryptionService,
                       String iexecOut) {
         this.uploaderService = uploaderService;
-        this.encryptionService = encryptionService;
         this.iexecOut = iexecOut;
     }
 
     /*
      * Manager
      * */
-    public void encryptAndUploadResult(ComputedFile computedFile) throws PostComputeException {
+    public void encryptAndUploadResult(ComputedFile computedFile) throws PostComputeException, GeneralSecurityException, IOException {
         // check result file names are not too long
         checkResultFilesName(computedFile.getTaskId(), iexecOut);
 
@@ -80,8 +79,9 @@ public class Web2ResultService {
         final AtomicBoolean failed = new AtomicBoolean(false);
         try {
             Files.walkFileTree(Paths.get(iexecOutPath), new SimpleFileVisitor<>() {
+                @NotNull
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                public FileVisitResult visitFile(Path file, @NotNull BasicFileAttributes attrs) {
                     final String fileName = file.getFileName().toString();
                     if (fileName.length() > RESULT_FILE_NAME_MAX_LENGTH) {
                         log.error("Too long result file name [chainTaskId:{}, file:{}]", taskId, file);
@@ -103,7 +103,7 @@ public class Web2ResultService {
         }
     }
 
-    String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException {
+    String eventuallyEncryptResult(String inDataFilePath) throws PostComputeException, GeneralSecurityException, IOException {
         log.info("Encryption stage started");
         boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
 
@@ -123,7 +123,7 @@ public class Web2ResultService {
             throw new PostComputeException(POST_COMPUTE_MALFORMED_ENCRYPTION_PUBLIC_KEY, errorMessage);
         }
 
-        final String fileToUpload = encryptionService.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
+        final String fileToUpload = EncryptionHelper.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
         if (fileToUpload.isEmpty()) {
             throw new PostComputeException(POST_COMPUTE_ENCRYPTION_FAILED, "Encryption stage failed");
         } else {

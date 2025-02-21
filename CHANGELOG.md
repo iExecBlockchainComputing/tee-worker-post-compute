@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Update build to run application in Scone framework 5.7 and 5.9 enlaves. (#125)
 
+### Quality
+
+- Remove `EncryptionService`. (#127)
+
 ### Dependency Upgrades
 
 - Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#124)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import com.iexec.common.result.ComputedFile;
 import com.iexec.worker.compute.post.utils.EnvUtils;
 import com.iexec.worker.compute.post.web2.Web2ResultService;
 import com.iexec.worker.compute.post.workflow.FlowService;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
 import static com.iexec.commons.poco.tee.TeeUtils.booleanFromYesNo;
@@ -43,7 +46,7 @@ public class PostComputeApp {
         this.chainTaskId = chainTaskId;
     }
 
-    public void runPostCompute() throws PostComputeException {
+    public void runPostCompute() throws PostComputeException, GeneralSecurityException, IOException {
         boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
 
         ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
