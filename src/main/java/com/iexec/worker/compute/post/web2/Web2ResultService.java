@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.GeneralSecurityException;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -62,7 +61,7 @@ public class Web2ResultService {
     /*
      * Manager
      * */
-    public void encryptAndUploadResult(final ComputedFile computedFile) throws PostComputeException, GeneralSecurityException, IOException {
+    public void encryptAndUploadResult(final ComputedFile computedFile) throws PostComputeException {
         // check result file names are not too long
         checkResultFilesName(computedFile.getTaskId(), iexecOut);
 
@@ -103,7 +102,7 @@ public class Web2ResultService {
         }
     }
 
-    String eventuallyEncryptResult(final String inDataFilePath) throws PostComputeException, GeneralSecurityException, IOException {
+    String eventuallyEncryptResult(final String inDataFilePath) throws PostComputeException {
         log.info("Encryption stage started");
         final boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
 
@@ -122,8 +121,14 @@ public class Web2ResultService {
             log.error(errorMessage, e);
             throw new PostComputeException(POST_COMPUTE_MALFORMED_ENCRYPTION_PUBLIC_KEY, errorMessage);
         }
-
-        final String fileToUpload = EncryptionHelper.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
+        String fileToUpload = "";
+        try {
+            fileToUpload = EncryptionHelper.encryptData(inDataFilePath, plainTextBeneficiaryRsaPublicKey, true);
+        } catch (Exception e) {
+            final String errorMessage = "Result encryption failed";
+            log.error(errorMessage, e);
+            throw new PostComputeException(POST_COMPUTE_ENCRYPTION_FAILED, errorMessage);
+        }
         if (fileToUpload.isEmpty()) {
             throw new PostComputeException(POST_COMPUTE_ENCRYPTION_FAILED, "Encryption stage failed");
         } else {
