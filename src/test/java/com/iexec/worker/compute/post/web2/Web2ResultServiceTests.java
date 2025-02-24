@@ -34,7 +34,6 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.worker.result.ResultUtils.*;
@@ -65,7 +64,7 @@ class Web2ResultServiceTests {
 
     //region encryptAndUploadResult
     @Test
-    void shouldEncryptAndUploadResult(final EnvironmentVariables environment) throws PostComputeException, GeneralSecurityException, IOException {
+    void shouldEncryptAndUploadResult(final EnvironmentVariables environment) throws PostComputeException {
         environment.set(
                 RESULT_STORAGE_TOKEN, "token"
         );
