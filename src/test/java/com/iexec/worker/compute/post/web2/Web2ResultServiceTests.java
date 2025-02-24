@@ -188,6 +188,26 @@ class Web2ResultServiceTests {
     }
 
     @Test
+    void shouldNotEventuallyEncryptResultSinceEncryptionFails(final EnvironmentVariables environment) {
+        environment.set(
+                RESULT_ENCRYPTION, "yes",
+                RESULT_ENCRYPTION_PUBLIC_KEY, "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FnOEFNSUlDQ2dLQ0FnRUF2clVtUnVMV3UvMm83ci8xSW9ocQp6RkJTUE93T0xYVlJoZjhBUThDcmZnZWRacE1Ld3huWUk4UGJad09oWEpIMzZLZk1UcnhRVjR3aFhlalZqNjdDCjFaMkFMZjBPcC84dXlKY3JuTlhUYXhhVmY0c1Y0RXB0eTBocTNLSGtuU0J0cTBSOENTV1IxeFI4RGNpR1hJaGgKTkllVkZaazZOS291czZ2Tkt6cWZCbDJWMVorRzJ5eEhCLzNiVE0yWjUyMXgxOUZpWUlkUk91TVlwRFRnVXllagpZTll4Vk5CZlVSWmFHcGhPS1FqYThYWkVuSVR1b0toWVpZclc1NVhuVWM5NHQ4TDgrbzgzVmY0OU9oc1JKQStlCk9IOEFSZGhkN3V0c1lwOVBzcko0bFE3d3N5cFhzNWNpQ0Q3T1c4Y3MvbFFEYk9HRHlPZVlMb0pOeUpWQ1lIUWsKSVR4QTluaWE0aU9iNjdaRUN1UkpCVk01aFYreFBzUkRFdlJERnZKRXA0ZXMwbjhJRDcvOW4reEZFNlZJSFpybgpnUUUrYXA0Vm13Qk8xa3d4K2RhZGNvSlNIdUhyU2FXUGpFRUZ0R0RNNmROTzIxTWdNMlZzeDNxSFdpd2NkbFVzCjI3Ym9HMGhyTlp4d2g2UjdHWmJSNDEwcWN1aXQ5TUw1R1ZSQ0QwaFNpd2lFNDJyb09aRkV1ck9KY2x0K3lGVy8KQW9wV3FtYkkvYmxjZ3VEdk5pT21LRTdCNFkycU9sSC9ma0hZbXN1aDAwOFVRT1ZUcXpYbUFtaTlqNzNiejlmeQpuN1RvS3FabUErYTdkS0pYUTdlNXM2b0VHeDc3Wlc0MzZ4SjF4MTg2MkJVVVgxNGdLOWoyTzVzU0RsTzBadTA5CkdiRUFIZlFUb3EyOTBIUENFeTBydWMwQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ"
+        );
+
+        final String inDataFilePath = "inDataFile.zip";
+
+        try (final MockedStatic<EncryptionHelper> encryptionHelper = Mockito.mockStatic(EncryptionHelper.class)) {
+            encryptionHelper.when(() -> EncryptionHelper.encryptData(eq(inDataFilePath), any(), eq(true)))
+                    .thenThrow(new RuntimeException("Encryption failed"));
+
+            final PostComputeException exception = assertThrows(PostComputeException.class,
+                    () -> web2ResultService.eventuallyEncryptResult(inDataFilePath));
+            assertEquals(POST_COMPUTE_ENCRYPTION_FAILED, exception.getStatusCause());
+            assertEquals("Result encryption failed", exception.getMessage());
+        }
+    }
+
+    @Test
     void shouldNotEventuallyEncryptResultSinceEmptyFileToUpload(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "yes",
