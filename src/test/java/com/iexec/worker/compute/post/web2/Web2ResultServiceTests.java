@@ -192,7 +192,7 @@ class Web2ResultServiceTests {
     void shouldNotEventuallyEncryptResultSinceEncryptionFails(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "yes",
-                RESULT_ENCRYPTION_PUBLIC_KEY, "RESULT_ENCRYPTION_PUBLIC_KEY_STRING"
+                RESULT_ENCRYPTION_PUBLIC_KEY, RESULT_ENCRYPTION_PUBLIC_KEY_STRING
         );
 
         final String inDataFilePath = "inDataFile.zip";
@@ -212,7 +212,7 @@ class Web2ResultServiceTests {
     void shouldNotEventuallyEncryptResultSinceEmptyFileToUpload(final EnvironmentVariables environment) {
         environment.set(
                 RESULT_ENCRYPTION, "yes",
-                RESULT_ENCRYPTION_PUBLIC_KEY, "RESULT_ENCRYPTION_PUBLIC_KEY_STRING"
+                RESULT_ENCRYPTION_PUBLIC_KEY, RESULT_ENCRYPTION_PUBLIC_KEY_STRING
         );
 
         final String inDataFilePath = "inDataFile.zip";
