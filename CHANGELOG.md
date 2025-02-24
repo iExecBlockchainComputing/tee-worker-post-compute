@@ -10,8 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Quality
 
-- Remove `EncryptionService`. (#127)
-- Adapt `PostComputeApp` and `Web2ResultService` to embrace API breaking changes in iexec-common. (#127)
+- Adapt `Web2ResultService` to iexec-common API breaking changes and remove `EncryptionService`. (#127)
 
 ### Dependency Upgrades
 

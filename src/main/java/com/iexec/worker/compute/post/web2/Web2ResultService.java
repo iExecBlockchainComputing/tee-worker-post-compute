@@ -23,7 +23,6 @@ import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.worker.compute.post.PostComputeException;
 import com.iexec.worker.compute.post.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,9 +77,8 @@ public class Web2ResultService {
         final AtomicBoolean failed = new AtomicBoolean(false);
         try {
             Files.walkFileTree(Paths.get(iexecOutPath), new SimpleFileVisitor<>() {
-                @NotNull
                 @Override
-                public FileVisitResult visitFile(final Path file, @NotNull final BasicFileAttributes attrs) {
+                public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
                     final String fileName = file.getFileName().toString();
                     if (fileName.length() > RESULT_FILE_NAME_MAX_LENGTH) {
                         log.error("Too long result file name [chainTaskId:{}, file:{}]", taskId, file);
