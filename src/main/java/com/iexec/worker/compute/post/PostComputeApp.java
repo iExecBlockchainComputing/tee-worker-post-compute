@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,9 @@ public class PostComputeApp {
     }
 
     public void runPostCompute() throws PostComputeException {
-        boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
+        final boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
 
-        ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
+        final ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
 
         flowService.buildResultDigestInComputedFile(computedFile, shouldCallback);
         flowService.signComputedFile(computedFile);
