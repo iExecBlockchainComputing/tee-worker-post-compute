@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import com.iexec.worker.compute.post.PostComputeException;
 import com.iexec.worker.compute.post.signer.SignerService;
 import feign.FeignException;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
@@ -39,8 +39,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SystemStubsExtension.class)
+@ExtendWith(MockitoExtension.class)
 class FlowServiceTests {
     private static final String CHAIN_TASK_ID = "0x0";
+    private static final String AUTH_HEADER = "Bearer validToken";
 
     @Mock
     SignerService signerService;
@@ -48,11 +50,6 @@ class FlowServiceTests {
     @Spy
     @InjectMocks
     FlowService flowService;
-
-    @BeforeEach
-    void openMocks() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     // region readComputedFile
     @Test
@@ -197,13 +194,14 @@ class FlowServiceTests {
     }
 
     @Test
-    void shouldNotSendComputedFileToHostSinceHttpError() {
+    void shouldNotSendComputedFileToHostSinceHttpError() throws PostComputeException {
         final ComputedFile computedFile = ComputedFile.builder().taskId(CHAIN_TASK_ID).build();
+        when(signerService.getChallenge(any())).thenReturn(AUTH_HEADER);
 
         WorkerApiClient workerApiClient = mock(WorkerApiClient.class);
         doThrow(mock(FeignException.NotFound.class))
                 .when(workerApiClient)
-                .sendComputedFileToHost(CHAIN_TASK_ID, computedFile);
+                .sendComputedFileToHost(AUTH_HEADER, CHAIN_TASK_ID, computedFile);
 
         try (MockedStatic<WorkerApiManager> workerApiManager = Mockito.mockStatic(WorkerApiManager.class)) {
             workerApiManager.when(WorkerApiManager::getWorkerApiClient).thenReturn(workerApiClient);

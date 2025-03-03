@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,44 @@
 
 package com.iexec.worker.compute.post.signer;
 
+import com.iexec.commons.poco.utils.HashUtils;
 import com.iexec.commons.poco.utils.SignatureUtils;
 import com.iexec.worker.compute.post.PostComputeException;
+import com.iexec.worker.compute.post.utils.EnvUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_INVALID_TEE_SIGNATURE;
+import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
+import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 class SignerServiceTests {
 
+    private static final String chainTaskId = "0x123456789abcdef";
+    private static final String workerAddress = "0xabcdef123456789";
+    private static final String enclaveChallengePrivateKey = "0xdd3b993ec21c71c1f6d63a5240850e0d4d8dd83ff70d29e49247958548c1d479";
+    private static final String messageHash = "0x5cd0e9c5180dd35e2b8285d0db4ded193a9b4be6fbfab90cbadccecab130acad";
+    private static final String expectedChallenge = "0xfcc6bce5eb04284c2eb1ed14405b943574343b1abda33628fbf94a374b18dd16541c6ebf63c6943d8643ff03c7aa17f1cb17b0a8d297d0fd95fc914bdd0e85f81b";
+
+    @Spy
     SignerService signerService = new SignerService();
 
     @Test
     void shouldSignEnclaveChallenge() {
-        final String messageHash = "0x5cd0e9c5180dd35e2b8285d0db4ded193a9b4be6fbfab90cbadccecab130acad";
-        final String enclaveChallengePrivateKey = "0xdd3b993ec21c71c1f6d63a5240850e0d4d8dd83ff70d29e49247958548c1d479";
-
-        final String expectedChallenge = "0xfcc6bce5eb04284c2eb1ed14405b943574343b1abda33628fbf94a374b18dd16541c6ebf63c6943d8643ff03c7aa17f1cb17b0a8d297d0fd95fc914bdd0e85f81b";
-
         final String actualChallenge = Assertions.assertDoesNotThrow(() -> signerService.signEnclaveChallenge(messageHash, enclaveChallengePrivateKey));
         assertEquals(expectedChallenge, actualChallenge);
     }
 
     @Test
     void shouldNotSignEnclaveChallengeSinceInvalidTeeSignature() {
-        final String messageHash = "0x5cd0e9c5180dd35e2b8285d0db4ded193a9b4be6fbfab90cbadccecab130acad";
-        final String enclaveChallengePrivateKey = "0x0123456789012345678901234567890123456789012345678901234567890123";
-
         try (MockedStatic<SignatureUtils> signatureUtils = Mockito.mockStatic(SignatureUtils.class)) {
             signatureUtils.when(() -> SignatureUtils.isExpectedSignerOnSignedMessageHash(any(), any(), any()))
                     .thenReturn(false);
@@ -55,6 +61,28 @@ class SignerServiceTests {
             final PostComputeException exception = assertThrows(PostComputeException.class, () -> signerService.signEnclaveChallenge(messageHash, enclaveChallengePrivateKey));
             assertEquals(POST_COMPUTE_INVALID_TEE_SIGNATURE, exception.getStatusCause());
             assertEquals("Failed to verify TeeEnclaveChallenge signature (exiting)", exception.getMessage());
+        }
+    }
+
+    @Test
+    void shouldGetChallenge() throws PostComputeException {
+        SignerService mockSignerService = Mockito.mock(SignerService.class, Mockito.CALLS_REAL_METHODS);
+
+        try (MockedStatic<EnvUtils> envUtils = Mockito.mockStatic(EnvUtils.class);
+             MockedStatic<HashUtils> hashUtils = Mockito.mockStatic(HashUtils.class)) {
+
+            envUtils.when(() -> EnvUtils.getEnvVarOrThrow(eq(RESULT_SIGN_WORKER_ADDRESS), any()))
+                    .thenReturn(workerAddress);
+            envUtils.when(() -> EnvUtils.getEnvVarOrThrow(eq(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY), any()))
+                    .thenReturn(enclaveChallengePrivateKey);
+            hashUtils.when(() -> HashUtils.concatenateAndHash(chainTaskId, workerAddress))
+                    .thenReturn(messageHash);
+
+            when(mockSignerService.signEnclaveChallenge(messageHash, enclaveChallengePrivateKey))
+                    .thenReturn(expectedChallenge);
+
+            String actualChallenge = mockSignerService.getChallenge(chainTaskId);
+            assertEquals(expectedChallenge, actualChallenge);
         }
     }
 

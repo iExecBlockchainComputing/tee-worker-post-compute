@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.commons.poco.tee.TeeEnclaveChallengeSignature;
 import com.iexec.commons.poco.utils.HashUtils;
+import com.iexec.worker.api.WorkerApiClient;
+import com.iexec.worker.api.WorkerApiManager;
 import com.iexec.worker.compute.post.PostComputeException;
 import com.iexec.worker.compute.post.signer.SignerService;
 import com.iexec.worker.compute.post.utils.EnvUtils;
-import com.iexec.worker.api.WorkerApiClient;
-import com.iexec.worker.api.WorkerApiManager;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -126,7 +126,8 @@ public class FlowService {
         final WorkerApiClient workerApiClient = WorkerApiManager.getWorkerApiClient();
 
         try {
-            workerApiClient.sendComputedFileToHost(computedFile.getTaskId(), computedFile);
+            final String taskId = computedFile.getTaskId();
+            workerApiClient.sendComputedFileToHost(signerService.getChallenge(taskId), taskId, computedFile);
         } catch (FeignException e) {
             throw new PostComputeException(
                     POST_COMPUTE_SEND_COMPUTED_FILE_FAILED,
