@@ -77,7 +77,10 @@ public class PostComputeAppRunner {
                             chainTaskId,
                             new ExitMessage(exitCause));
             return 1;
-        } catch (FeignException | PostComputeException e) {
+        } catch (PostComputeException e) {
+            log.error("Failed to retrieve authorization [taskId:{}]", chainTaskId, e);
+            return 2;
+        } catch (FeignException e) {
             log.error("Failed to report exitCause [exitCause:{}]", exitCause, e);
             return 2;
         }

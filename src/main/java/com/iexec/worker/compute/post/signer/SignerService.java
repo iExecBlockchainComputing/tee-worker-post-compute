@@ -51,10 +51,7 @@ public class SignerService {
     public String getChallenge(final String chainTaskId) throws PostComputeException {
         final String workerAddress = EnvUtils.getEnvVarOrThrow(SIGN_WORKER_ADDRESS.name(), POST_COMPUTE_WORKER_ADDRESS_MISSING);
         final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(SIGN_TEE_CHALLENGE_PRIVATE_KEY.name(), POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
-        final String messageHash = HashUtils.concatenateAndHash(
-                chainTaskId,
-                workerAddress
-        );
+        final String messageHash = HashUtils.concatenateAndHash(chainTaskId, workerAddress);
         return signEnclaveChallenge(messageHash, teeChallengePrivateKey);
     }
 
