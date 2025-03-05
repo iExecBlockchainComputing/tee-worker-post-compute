@@ -24,8 +24,8 @@ import com.iexec.worker.compute.post.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_TEE_CHALLENGE_PRIVATE_KEY;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_WORKER_ADDRESS;
 import static com.iexec.commons.poco.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.commons.poco.utils.SignatureUtils.signMessageHashAndGetSignature;
 
@@ -49,8 +49,8 @@ public class SignerService {
     }
 
     public String getChallenge(final String chainTaskId) throws PostComputeException {
-        final String workerAddress = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_WORKER_ADDRESS, POST_COMPUTE_WORKER_ADDRESS_MISSING);
-        final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
+        final String workerAddress = EnvUtils.getEnvVarOrThrow(SIGN_WORKER_ADDRESS.name(), POST_COMPUTE_WORKER_ADDRESS_MISSING);
+        final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(SIGN_TEE_CHALLENGE_PRIVATE_KEY.name(), POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
         final String messageHash = HashUtils.concatenateAndHash(
                 chainTaskId,
                 workerAddress

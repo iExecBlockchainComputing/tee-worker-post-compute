@@ -33,7 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.IEXEC_TASK_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -67,7 +67,7 @@ class PostComputeAppRunnerTests {
 
     @Test
     void postComputeSuccess(EnvironmentVariables environment) throws Exception {
-        environment.set(RESULT_TASK_ID, CHAIN_TASK_ID);
+        environment.set(IEXEC_TASK_ID, CHAIN_TASK_ID);
 
         PostComputeApp postComputeApp = mock(PostComputeApp.class);
         when(postComputeAppRunner.createPostComputeApp(CHAIN_TASK_ID)).thenReturn(postComputeApp);
@@ -79,7 +79,7 @@ class PostComputeAppRunnerTests {
 
     @Test
     void knownCauseTransmitted(EnvironmentVariables environment) throws Exception {
-        environment.set(RESULT_TASK_ID, CHAIN_TASK_ID);
+        environment.set(IEXEC_TASK_ID, CHAIN_TASK_ID);
         when(signerService.getChallenge(CHAIN_TASK_ID)).thenReturn(CHALLENGE);
 
         PostComputeApp postComputeApp = mock(PostComputeApp.class);
@@ -104,7 +104,7 @@ class PostComputeAppRunnerTests {
 
     @Test
     void unknownCauseTransmitted(EnvironmentVariables environment) throws Exception {
-        environment.set(RESULT_TASK_ID, CHAIN_TASK_ID);
+        environment.set(IEXEC_TASK_ID, CHAIN_TASK_ID);
         when(signerService.getChallenge(CHAIN_TASK_ID)).thenReturn(CHALLENGE);
 
         PostComputeApp postComputeApp = mock(PostComputeApp.class);
@@ -123,7 +123,7 @@ class PostComputeAppRunnerTests {
 
     @Test
     void causeNotTransmitted(EnvironmentVariables environment) throws Exception {
-        environment.set(RESULT_TASK_ID, CHAIN_TASK_ID);
+        environment.set(IEXEC_TASK_ID, CHAIN_TASK_ID);
         when(signerService.getChallenge(CHAIN_TASK_ID)).thenReturn(CHALLENGE);
 
         PostComputeApp postComputeApp = mock(PostComputeApp.class);
@@ -148,7 +148,7 @@ class PostComputeAppRunnerTests {
 
     @Test
     void signerServiceException(EnvironmentVariables environment) throws Exception {
-        environment.set(RESULT_TASK_ID, CHAIN_TASK_ID);
+        environment.set(IEXEC_TASK_ID, CHAIN_TASK_ID);
         when(signerService.getChallenge(CHAIN_TASK_ID)).thenReturn(CHALLENGE);
 
         PostComputeApp postComputeApp = mock(PostComputeApp.class);

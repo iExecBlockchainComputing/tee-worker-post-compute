@@ -33,8 +33,8 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_TEE_CHALLENGE_PRIVATE_KEY;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_WORKER_ADDRESS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -141,8 +141,8 @@ class FlowServiceTests {
         final String privateKey = "0xdd3b993ec21c71c1f6d63a5240850e0d4d8dd83ff70d29e49247958548c1d479";
         final String signature = "enclaveSignature";
 
-        environment.set(RESULT_SIGN_WORKER_ADDRESS, "0x250a3919982ca7CEF58960fF716122dbb4514036");
-        environment.set(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, privateKey);
+        environment.set(SIGN_WORKER_ADDRESS, "0x250a3919982ca7CEF58960fF716122dbb4514036");
+        environment.set(SIGN_TEE_CHALLENGE_PRIVATE_KEY, privateKey);
 
         final ComputedFile computedFile = ComputedFile
                 .builder()
@@ -167,7 +167,7 @@ class FlowServiceTests {
 
     @Test
     void shouldNotSignComputedFileSinceNoChallengePrivateKey(EnvironmentVariables environment) {
-        environment.set(RESULT_SIGN_WORKER_ADDRESS, "0x250a3919982ca7CEF58960fF716122dbb4514036");
+        environment.set(SIGN_WORKER_ADDRESS, "0x250a3919982ca7CEF58960fF716122dbb4514036");
 
         final ComputedFile computedFile = ComputedFile
                 .builder()

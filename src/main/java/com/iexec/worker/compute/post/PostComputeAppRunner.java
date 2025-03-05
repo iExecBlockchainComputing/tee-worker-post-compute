@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_FAILED_UNKNOWN_ISSUE;
 import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_TASK_ID_MISSING;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.IEXEC_TASK_ID;
 
 @Slf4j
 public class PostComputeAppRunner {
@@ -49,7 +49,7 @@ public class PostComputeAppRunner {
         String chainTaskId = null;
 
         try {
-            chainTaskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_TASK_ID_MISSING);
+            chainTaskId = EnvUtils.getEnvVarOrThrow(IEXEC_TASK_ID.name(), POST_COMPUTE_TASK_ID_MISSING);
         } catch (PostComputeException e) {
             log.error("TEE post-compute cannot go further without taskID context");
             return 3;

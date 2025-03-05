@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,18 +22,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_COMPUTED_FILE_NOT_FOUND;
 import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_RESULT_DIGEST_COMPUTATION_FAILED;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_STORAGE_CALLBACK;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.RESULT_STORAGE_CALLBACK;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SystemStubsExtension.class)
+@ExtendWith(MockitoExtension.class)
 class PostComputeAppTests {
     private static final String CHAIN_TASK_ID = "0x0";
 
@@ -47,7 +48,6 @@ class PostComputeAppTests {
 
     @BeforeEach
     void openMocks() {
-        MockitoAnnotations.openMocks(this);
         postComputeApp = spy(new PostComputeApp(flowService, web2ResultService, CHAIN_TASK_ID));
     }
 

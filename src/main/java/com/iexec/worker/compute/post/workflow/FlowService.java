@@ -30,8 +30,8 @@ import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_TEE_CHALLENGE_PRIVATE_KEY;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_WORKER_ADDRESS;
 
 @Slf4j
 public class FlowService {
@@ -53,7 +53,7 @@ public class FlowService {
     public ComputedFile readComputedFile(String taskId) throws PostComputeException {
         log.info("ReadComputedFile stage started");
 
-        ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, IexecFileHelper.SLASH_IEXEC_OUT);
+        final ComputedFile computedFile = IexecFileHelper.readComputedFile(taskId, IexecFileHelper.SLASH_IEXEC_OUT);
         if (computedFile == null) {
             throw new PostComputeException(POST_COMPUTE_COMPUTED_FILE_NOT_FOUND, "computed.json missing");
         }
@@ -69,7 +69,7 @@ public class FlowService {
     public void buildResultDigestInComputedFile(ComputedFile computedFile, boolean isCallbackMode) throws PostComputeException {
         log.info("ResultDigest stage started [mode:{}]", isCallbackMode ? "web3" : "web2");
 
-        String resultDigest;
+        final String resultDigest;
         if (isCallbackMode) {
             resultDigest = ResultUtils.computeWeb3ResultDigest(computedFile);
         } else {
@@ -91,14 +91,14 @@ public class FlowService {
     public void signComputedFile(ComputedFile computedFile) throws PostComputeException {
         log.info("Signer stage started");
 
-        String workerAddress = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_WORKER_ADDRESS, POST_COMPUTE_WORKER_ADDRESS_MISSING);
-        String resultHash = HashUtils.concatenateAndHash(computedFile.getTaskId(), computedFile.getResultDigest());
-        String resultSeal = HashUtils.concatenateAndHash(workerAddress, computedFile.getTaskId(), computedFile.getResultDigest());
-        String messageHash = TeeEnclaveChallengeSignature.getMessageHash(resultHash, resultSeal);
+        final String workerAddress = EnvUtils.getEnvVarOrThrow(SIGN_WORKER_ADDRESS.name(), POST_COMPUTE_WORKER_ADDRESS_MISSING);
+        final String resultHash = HashUtils.concatenateAndHash(computedFile.getTaskId(), computedFile.getResultDigest());
+        final String resultSeal = HashUtils.concatenateAndHash(workerAddress, computedFile.getTaskId(), computedFile.getResultDigest());
+        final String messageHash = TeeEnclaveChallengeSignature.getMessageHash(resultHash, resultSeal);
 
-        String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY, POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
+        final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(SIGN_TEE_CHALLENGE_PRIVATE_KEY.name(), POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
 
-        String enclaveSignature = signerService.signEnclaveChallenge(messageHash, teeChallengePrivateKey);
+        final String enclaveSignature = signerService.signEnclaveChallenge(messageHash, teeChallengePrivateKey);
 
         computedFile.setEnclaveSignature(enclaveSignature);
         log.info("Signer stage completed");

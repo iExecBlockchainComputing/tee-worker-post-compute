@@ -32,7 +32,7 @@ import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
-import static com.iexec.common.worker.result.ResultUtils.*;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.*;
 import static com.iexec.commons.poco.chain.DealParams.DROPBOX_RESULT_STORAGE_PROVIDER;
 import static com.iexec.commons.poco.chain.DealParams.IPFS_RESULT_STORAGE_PROVIDER;
 import static com.iexec.commons.poco.tee.TeeUtils.booleanFromYesNo;
@@ -102,7 +102,7 @@ public class Web2ResultService {
 
     String eventuallyEncryptResult(final String inDataFilePath) throws PostComputeException {
         log.info("Encryption stage started");
-        final boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
+        final boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION.name()));
 
         if (!shouldEncrypt) {
             log.info("Encryption stage mode: NO_ENCRYPTION");
@@ -110,7 +110,7 @@ public class Web2ResultService {
         }
 
         log.info("Encryption stage mode: ENCRYPTION_REQUESTED");
-        final String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY, POST_COMPUTE_ENCRYPTION_PUBLIC_KEY_MISSING);
+        final String beneficiaryRsaPublicKeyBase64 = EnvUtils.getEnvVarOrThrow(RESULT_ENCRYPTION_PUBLIC_KEY.name(), POST_COMPUTE_ENCRYPTION_PUBLIC_KEY_MISSING);
         final String plainTextBeneficiaryRsaPublicKey;
         try {
             plainTextBeneficiaryRsaPublicKey = new String(Base64.getDecoder().decode(beneficiaryRsaPublicKeyBase64));
@@ -137,9 +137,9 @@ public class Web2ResultService {
 
     String uploadResult(final ComputedFile computedFile, final String fileToUploadPath) throws PostComputeException {
         log.info("Upload stage started");
-        final String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER);
-        final String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY);
-        final String storageToken = EnvUtils.getEnvVarOrThrow(RESULT_STORAGE_TOKEN, POST_COMPUTE_STORAGE_TOKEN_MISSING);
+        final String storageProvider = EnvUtils.getEnvVar(RESULT_STORAGE_PROVIDER.name());
+        final String storageProxy = EnvUtils.getEnvVar(RESULT_STORAGE_PROXY.name());
+        final String storageToken = EnvUtils.getEnvVarOrThrow(RESULT_STORAGE_TOKEN.name(), POST_COMPUTE_STORAGE_TOKEN_MISSING);
 
         String resultLink = "";
         switch (storageProvider) {

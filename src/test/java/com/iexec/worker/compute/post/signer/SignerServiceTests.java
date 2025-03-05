@@ -19,22 +19,27 @@ package com.iexec.worker.compute.post.signer;
 import com.iexec.commons.poco.utils.HashUtils;
 import com.iexec.commons.poco.utils.SignatureUtils;
 import com.iexec.worker.compute.post.PostComputeException;
-import com.iexec.worker.compute.post.utils.EnvUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_INVALID_TEE_SIGNATURE;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_SIGN_WORKER_ADDRESS;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_TEE_CHALLENGE_PRIVATE_KEY;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_WORKER_ADDRESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockStatic;
 
+@ExtendWith(SystemStubsExtension.class)
+@ExtendWith(MockitoExtension.class)
 class SignerServiceTests {
 
     private static final String CHAIN_TASK_ID = "0x123456789abcdef";
@@ -65,23 +70,19 @@ class SignerServiceTests {
     }
 
     @Test
-    void shouldGetChallenge() throws PostComputeException {
-        SignerService mockSignerService = Mockito.mock(SignerService.class, Mockito.CALLS_REAL_METHODS);
+    void shouldGetChallenge(EnvironmentVariables environment) throws PostComputeException {
+        environment.set(SIGN_WORKER_ADDRESS.name(), WORKER_ADDRESS);
+        environment.set(SIGN_TEE_CHALLENGE_PRIVATE_KEY.name(), ENCLAVE_CHALLENGE_PRIVATE_KEY);
 
-        try (MockedStatic<EnvUtils> envUtils = Mockito.mockStatic(EnvUtils.class);
-             MockedStatic<HashUtils> hashUtils = Mockito.mockStatic(HashUtils.class)) {
-
-            envUtils.when(() -> EnvUtils.getEnvVarOrThrow(eq(RESULT_SIGN_WORKER_ADDRESS), any()))
-                    .thenReturn(WORKER_ADDRESS);
-            envUtils.when(() -> EnvUtils.getEnvVarOrThrow(eq(RESULT_SIGN_TEE_CHALLENGE_PRIVATE_KEY), any()))
-                    .thenReturn(ENCLAVE_CHALLENGE_PRIVATE_KEY);
-            hashUtils.when(() -> HashUtils.concatenateAndHash(CHAIN_TASK_ID, WORKER_ADDRESS))
+        try (final MockedStatic<HashUtils> hashUtilsMock = mockStatic(HashUtils.class)) {
+            hashUtilsMock.when(() -> HashUtils.concatenateAndHash(CHAIN_TASK_ID, WORKER_ADDRESS))
                     .thenReturn(MESSAGE_HASH);
 
-            when(mockSignerService.signEnclaveChallenge(MESSAGE_HASH, ENCLAVE_CHALLENGE_PRIVATE_KEY))
-                    .thenReturn(EXPECTED_CHALLENGE);
+            doReturn(EXPECTED_CHALLENGE)
+                    .when(signerService)
+                    .signEnclaveChallenge(MESSAGE_HASH, ENCLAVE_CHALLENGE_PRIVATE_KEY);
 
-            String actualChallenge = mockSignerService.getChallenge(CHAIN_TASK_ID);
+            final String actualChallenge = signerService.getChallenge(CHAIN_TASK_ID);
             assertEquals(EXPECTED_CHALLENGE, actualChallenge);
         }
     }
