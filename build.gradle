@@ -55,9 +55,6 @@ dependencies {
     // Apache Commons-lang3
     implementation 'org.apache.commons:commons-lang3'
 
-    // Spring Test
-    implementation "org.springframework:spring-test"
-
 }
 
 java {
@@ -85,6 +82,7 @@ testing {
                 implementation "org.mockito:mockito-junit-jupiter"
                 implementation "uk.org.webcompere:system-stubs-core:$systemStubsVersion"    // activates env var setting
                 implementation "uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion" // activates env var setting
+                implementation "org.springframework:spring-test"
             }
         }
         itest(JvmTestSuite) {
