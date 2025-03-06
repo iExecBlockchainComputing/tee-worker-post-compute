@@ -30,6 +30,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
@@ -50,13 +51,7 @@ class PostComputeAppRunnerTests {
 
     @BeforeEach
     void setUp() {
-        try {
-            java.lang.reflect.Field field = PostComputeAppRunner.class.getDeclaredField("signerService");
-            field.setAccessible(true);
-            field.set(postComputeAppRunner, signerService);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to inject mocked signerService", e);
-        }
+        ReflectionTestUtils.setField(postComputeAppRunner, "signerService", signerService);
     }
 
     @Test

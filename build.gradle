@@ -55,6 +55,9 @@ dependencies {
     // Apache Commons-lang3
     implementation 'org.apache.commons:commons-lang3'
 
+    // Spring Test
+    implementation "org.springframework:spring-test"
+
 }
 
 java {

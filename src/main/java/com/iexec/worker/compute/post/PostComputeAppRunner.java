@@ -30,11 +30,7 @@ import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.IEXEC_TA
 
 @Slf4j
 public class PostComputeAppRunner {
-    private final SignerService signerService;
-
-    public PostComputeAppRunner() {
-        this.signerService = new SignerService();
-    }
+    private final SignerService signerService = new SignerService();
 
     /**
      * Exits:
