@@ -44,7 +44,7 @@ public class PostComputeApp {
     }
 
     public void runPostCompute() throws PostComputeException {
-        final boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK.name()));
+        final boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
 
         final ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
 

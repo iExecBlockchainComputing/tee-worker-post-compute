@@ -91,12 +91,12 @@ public class FlowService {
     public void signComputedFile(ComputedFile computedFile) throws PostComputeException {
         log.info("Signer stage started");
 
-        final String workerAddress = EnvUtils.getEnvVarOrThrow(SIGN_WORKER_ADDRESS.name(), POST_COMPUTE_WORKER_ADDRESS_MISSING);
+        final String workerAddress = EnvUtils.getEnvVarOrThrow(SIGN_WORKER_ADDRESS, POST_COMPUTE_WORKER_ADDRESS_MISSING);
         final String resultHash = HashUtils.concatenateAndHash(computedFile.getTaskId(), computedFile.getResultDigest());
         final String resultSeal = HashUtils.concatenateAndHash(workerAddress, computedFile.getTaskId(), computedFile.getResultDigest());
         final String messageHash = TeeEnclaveChallengeSignature.getMessageHash(resultHash, resultSeal);
 
-        final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(SIGN_TEE_CHALLENGE_PRIVATE_KEY.name(), POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
+        final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(SIGN_TEE_CHALLENGE_PRIVATE_KEY, POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
 
         final String enclaveSignature = signerService.signEnclaveChallenge(messageHash, teeChallengePrivateKey);
 

@@ -49,7 +49,7 @@ public class PostComputeAppRunner {
         String chainTaskId = null;
 
         try {
-            chainTaskId = EnvUtils.getEnvVarOrThrow(IEXEC_TASK_ID.name(), POST_COMPUTE_TASK_ID_MISSING);
+            chainTaskId = EnvUtils.getEnvVarOrThrow(IEXEC_TASK_ID, POST_COMPUTE_TASK_ID_MISSING);
         } catch (PostComputeException e) {
             log.error("TEE post-compute cannot go further without taskID context");
             return 3;
