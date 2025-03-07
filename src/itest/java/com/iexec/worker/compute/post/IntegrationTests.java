@@ -68,7 +68,7 @@ class IntegrationTests {
     void shouldHandleCallback(EnvironmentVariables environment) {
         final String taskId = "0x0000000000000000000000000000000000000000000000000000000000000001";
         environment.set(IEXEC_TASK_ID, taskId);
-        environment.set(RESULT_STORAGE_CALLBACK, "yes");
+        environment.set(RESULT_STORAGE_CALLBACK, "true");
         environment.set(SIGN_WORKER_ADDRESS, "0x0000000000000000000000000000000000000002");
         environment.set(SIGN_TEE_CHALLENGE_PRIVATE_KEY, "0x000000000000000000000000000000000000000000000000000000000000003");
         environment.set("WORKER_HOST", worker.getServiceHost(WORKER_SERVICE_NAME, WORKER_SERVICE_PORT) + ":" + worker.getServicePort(WORKER_SERVICE_NAME, WORKER_SERVICE_PORT));

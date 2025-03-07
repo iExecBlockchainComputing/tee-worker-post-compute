@@ -22,7 +22,6 @@ import com.iexec.worker.compute.post.web2.Web2ResultService;
 import com.iexec.worker.compute.post.workflow.FlowService;
 
 import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.RESULT_STORAGE_CALLBACK;
-import static com.iexec.commons.poco.tee.TeeUtils.booleanFromYesNo;
 
 public class PostComputeApp {
     private final FlowService flowService;
@@ -44,7 +43,7 @@ public class PostComputeApp {
     }
 
     public void runPostCompute() throws PostComputeException {
-        final boolean shouldCallback = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
+        final boolean shouldCallback = Boolean.parseBoolean(EnvUtils.getEnvVar(RESULT_STORAGE_CALLBACK));
 
         final ComputedFile computedFile = flowService.readComputedFile(chainTaskId);
 
