@@ -136,7 +136,7 @@ class Web2ResultServiceTests {
     @Test
     void shouldEventuallyEncryptResult(final EnvironmentVariables environment) {
         environment.set(
-                RESULT_ENCRYPTION, "yes",
+                RESULT_ENCRYPTION, "true",
                 RESULT_ENCRYPTION_PUBLIC_KEY, RESULT_ENCRYPTION_PUBLIC_KEY_STRING
         );
 
@@ -155,7 +155,7 @@ class Web2ResultServiceTests {
     @Test
     void shouldNotEventuallyEncryptResultSinceNoEncryptionNeeded(final EnvironmentVariables environment) {
         environment.set(
-                RESULT_ENCRYPTION, "no"
+                RESULT_ENCRYPTION, "false"
         );
 
         final String inDataFilePath = "inDataFile.zip";
@@ -167,7 +167,7 @@ class Web2ResultServiceTests {
     @Test
     void shouldNotEventuallyEncryptResultSinceNoPublicKey(final EnvironmentVariables environment) {
         environment.set(
-                RESULT_ENCRYPTION, "yes"
+                RESULT_ENCRYPTION, "true"
         );
 
         final String inDataFilePath = "inDataFile.zip";
@@ -179,7 +179,7 @@ class Web2ResultServiceTests {
     @Test
     void shouldNotEventuallyEncryptResultSinceMalformedPublicKey(final EnvironmentVariables environment) {
         environment.set(
-                RESULT_ENCRYPTION, "yes",
+                RESULT_ENCRYPTION, "true",
                 RESULT_ENCRYPTION_PUBLIC_KEY, "?"
         );
 
@@ -191,7 +191,7 @@ class Web2ResultServiceTests {
     @Test
     void shouldNotEventuallyEncryptResultSinceEncryptionFails(final EnvironmentVariables environment) {
         environment.set(
-                RESULT_ENCRYPTION, "yes",
+                RESULT_ENCRYPTION, "true",
                 RESULT_ENCRYPTION_PUBLIC_KEY, RESULT_ENCRYPTION_PUBLIC_KEY_STRING
         );
 
@@ -211,7 +211,7 @@ class Web2ResultServiceTests {
     @Test
     void shouldNotEventuallyEncryptResultSinceEmptyFileToUpload(final EnvironmentVariables environment) {
         environment.set(
-                RESULT_ENCRYPTION, "yes",
+                RESULT_ENCRYPTION, "true",
                 RESULT_ENCRYPTION_PUBLIC_KEY, RESULT_ENCRYPTION_PUBLIC_KEY_STRING
         );
 

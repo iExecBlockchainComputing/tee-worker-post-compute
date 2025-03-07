@@ -35,7 +35,6 @@ import static com.iexec.common.replicate.ReplicateStatusCause.*;
 import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.*;
 import static com.iexec.commons.poco.chain.DealParams.DROPBOX_RESULT_STORAGE_PROVIDER;
 import static com.iexec.commons.poco.chain.DealParams.IPFS_RESULT_STORAGE_PROVIDER;
-import static com.iexec.commons.poco.tee.TeeUtils.booleanFromYesNo;
 
 @Slf4j
 public class Web2ResultService {
@@ -102,7 +101,7 @@ public class Web2ResultService {
 
     String eventuallyEncryptResult(final String inDataFilePath) throws PostComputeException {
         log.info("Encryption stage started");
-        final boolean shouldEncrypt = booleanFromYesNo(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
+        final boolean shouldEncrypt = Boolean.parseBoolean(EnvUtils.getEnvVar(RESULT_ENCRYPTION));
 
         if (!shouldEncrypt) {
             log.info("Encryption stage mode: NO_ENCRYPTION");

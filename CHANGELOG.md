@@ -6,12 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 
-- Update build to run application in Scone framework 5.7 and 5.9 enlaves. (#125)
+- Update build to run application in Scone framework 5.7 and 5.9 enclaves. (#125)
 - Add authorization proof to requests sending data to the worker. (#128 #129)
 
 ### Quality
 
 - Adapt `Web2ResultService` to iexec-common API breaking changes and remove `EncryptionService`. (#127)
+
+### Breaking API changes
+
+- Replace custom yes/no boolean serialization with standard Java boolean strings. (#130)
 
 ### Dependency Upgrades
 
