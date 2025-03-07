@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.iexec.common.replicate.ReplicateStatusCause.*;
-import static com.iexec.common.worker.result.ResultUtils.*;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.*;
 import static com.iexec.commons.poco.chain.DealParams.DROPBOX_RESULT_STORAGE_PROVIDER;
 import static com.iexec.commons.poco.chain.DealParams.IPFS_RESULT_STORAGE_PROVIDER;
 import static org.junit.jupiter.api.Assertions.*;

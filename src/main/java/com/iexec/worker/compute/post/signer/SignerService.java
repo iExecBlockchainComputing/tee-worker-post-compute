@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,14 @@ package com.iexec.worker.compute.post.signer;
 
 import com.iexec.commons.poco.security.Signature;
 import com.iexec.commons.poco.utils.CredentialsUtils;
+import com.iexec.commons.poco.utils.HashUtils;
 import com.iexec.worker.compute.post.PostComputeException;
+import com.iexec.worker.compute.post.utils.EnvUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_INVALID_TEE_SIGNATURE;
+import static com.iexec.common.replicate.ReplicateStatusCause.*;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_TEE_CHALLENGE_PRIVATE_KEY;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.SIGN_WORKER_ADDRESS;
 import static com.iexec.commons.poco.utils.SignatureUtils.isExpectedSignerOnSignedMessageHash;
 import static com.iexec.commons.poco.utils.SignatureUtils.signMessageHashAndGetSignature;
 
@@ -42,6 +46,13 @@ public class SignerService {
         }
 
         return enclaveChallengeSignature.getValue();
+    }
+
+    public String getChallenge(final String chainTaskId) throws PostComputeException {
+        final String workerAddress = EnvUtils.getEnvVarOrThrow(SIGN_WORKER_ADDRESS, POST_COMPUTE_WORKER_ADDRESS_MISSING);
+        final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(SIGN_TEE_CHALLENGE_PRIVATE_KEY, POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
+        final String messageHash = HashUtils.concatenateAndHash(chainTaskId, workerAddress);
+        return signEnclaveChallenge(messageHash, teeChallengePrivateKey);
     }
 
 }
