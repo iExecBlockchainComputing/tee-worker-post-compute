@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Adapt `Web2ResultService` to iexec-common API breaking changes and remove `EncryptionService`. (#127)
+
+### Breaking API changes
+
 - Replace custom yes/no boolean serialization with standard Java boolean strings. (#130)
 
 ### Dependency Upgrades
