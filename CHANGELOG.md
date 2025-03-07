@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Adapt `Web2ResultService` to iexec-common API breaking changes and remove `EncryptionService`. (#127)
+- Resolve Integration Test Issues. (#129)
 
 ### Dependency Upgrades
 
