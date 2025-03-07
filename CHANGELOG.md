@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - Update build to run application in Scone framework 5.7 and 5.9 enlaves. (#125)
-- Add authorization proof to requests sending data to the worker. (#128)
+- Add authorization proof to requests sending data to the worker. (#128 #129)
 
 ### Quality
 
