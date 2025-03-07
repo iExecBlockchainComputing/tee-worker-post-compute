@@ -155,7 +155,7 @@ class Web2ResultServiceTests {
     @Test
     void shouldNotEventuallyEncryptResultSinceNoEncryptionNeeded(final EnvironmentVariables environment) {
         environment.set(
-                RESULT_ENCRYPTION, "no"
+                RESULT_ENCRYPTION, "false"
         );
 
         final String inDataFilePath = "inDataFile.zip";
