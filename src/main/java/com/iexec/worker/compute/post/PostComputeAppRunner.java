@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,18 @@ package com.iexec.worker.compute.post;
 import com.iexec.common.replicate.ReplicateStatusCause;
 import com.iexec.common.worker.api.ExitMessage;
 import com.iexec.worker.api.WorkerApiManager;
+import com.iexec.worker.compute.post.signer.SignerService;
 import com.iexec.worker.compute.post.utils.EnvUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_TASK_ID_MISSING;
 import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_FAILED_UNKNOWN_ISSUE;
-import static com.iexec.common.worker.result.ResultUtils.RESULT_TASK_ID;
+import static com.iexec.common.replicate.ReplicateStatusCause.POST_COMPUTE_TASK_ID_MISSING;
+import static com.iexec.common.worker.tee.TeeSessionEnvironmentVariable.IEXEC_TASK_ID;
 
 @Slf4j
 public class PostComputeAppRunner {
+    private final SignerService signerService = new SignerService();
 
     /**
      * Exits:
@@ -43,7 +45,7 @@ public class PostComputeAppRunner {
         String chainTaskId = null;
 
         try {
-            chainTaskId = EnvUtils.getEnvVarOrThrow(RESULT_TASK_ID, POST_COMPUTE_TASK_ID_MISSING);
+            chainTaskId = EnvUtils.getEnvVarOrThrow(IEXEC_TASK_ID, POST_COMPUTE_TASK_ID_MISSING);
         } catch (PostComputeException e) {
             log.error("TEE post-compute cannot go further without taskID context");
             return 3;
@@ -55,7 +57,7 @@ public class PostComputeAppRunner {
             postComputeApp.runPostCompute();
             log.info("TEE post-compute completed");
             return 0;
-        } catch(PostComputeException e) {
+        } catch (PostComputeException e) {
             exitCause = e.getStatusCause();
             log.error("TEE post-compute failed with a known exitCause " +
                             "[errorMessage:{}]",
@@ -67,9 +69,13 @@ public class PostComputeAppRunner {
 
         try {
             WorkerApiManager.getWorkerApiClient()
-                    .sendExitCauseForPostComputeStage(chainTaskId,
+                    .sendExitCauseForPostComputeStage(signerService.getChallenge(chainTaskId),
+                            chainTaskId,
                             new ExitMessage(exitCause));
             return 1;
+        } catch (PostComputeException e) {
+            log.error("Failed to retrieve authorization [taskId:{}]", chainTaskId, e);
+            return 2;
         } catch (FeignException e) {
             log.error("Failed to report exitCause [exitCause:{}]", exitCause, e);
             return 2;

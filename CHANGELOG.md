@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[9.0.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v9.0.0) 2025-03-28
+
+### New Features
+
+- Update build to run application in Scone framework 5.7 and 5.9 enclaves. (#125)
+- Add authorization proof to requests sending data to the worker. (#128 #129)
+
+### Quality
+
+- Adapt `Web2ResultService` to iexec-common API breaking changes and remove `EncryptionService`. (#127)
+
+### Breaking API changes
+
+- Replace custom yes/no boolean serialization with standard Java boolean strings. (#130)
+
+### Dependency Upgrades
+
+- Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#124)
+- Upgrade to Spring Boot 3.3.8. (#126)
+- Upgrade to `iexec-commons-poco` 5.0.0. (#131)
+- Upgrade to `iexec-common` 9.0.0. (#131)
+
 ## [[8.6.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.6.0) 2024-12-20
 
 ### New Features
