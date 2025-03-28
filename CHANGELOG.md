@@ -21,7 +21,8 @@ All notable changes to this project will be documented in this file.
 
 - Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#124)
 - Upgrade to Spring Boot 3.3.8. (#126)
-- Upgrade to `iexec-commons-poco` 5.0.0 and `iexec-common` 9.0.0. (#131)
+- Upgrade to `iexec-commons-poco` 5.0.0. (#131)
+- Upgrade to `iexec-common` 9.0.0. (#131)
 
 ## [[8.6.0]](https://github.com/iExecBlockchainComputing/tee-worker-post-compute/releases/tag/v8.6.0) 2024-12-20
 

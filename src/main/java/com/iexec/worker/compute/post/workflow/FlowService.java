@@ -19,7 +19,6 @@ package com.iexec.worker.compute.post.workflow;
 import com.iexec.common.result.ComputedFile;
 import com.iexec.common.utils.IexecFileHelper;
 import com.iexec.common.worker.result.ResultUtils;
-import com.iexec.commons.poco.tee.TeeEnclaveChallengeSignature;
 import com.iexec.commons.poco.utils.HashUtils;
 import com.iexec.worker.api.WorkerApiClient;
 import com.iexec.worker.api.WorkerApiManager;
@@ -94,7 +93,7 @@ public class FlowService {
         final String workerAddress = EnvUtils.getEnvVarOrThrow(SIGN_WORKER_ADDRESS, POST_COMPUTE_WORKER_ADDRESS_MISSING);
         final String resultHash = HashUtils.concatenateAndHash(computedFile.getTaskId(), computedFile.getResultDigest());
         final String resultSeal = HashUtils.concatenateAndHash(workerAddress, computedFile.getTaskId(), computedFile.getResultDigest());
-        final String messageHash = TeeEnclaveChallengeSignature.getMessageHash(resultHash, resultSeal);
+        final String messageHash = HashUtils.concatenateAndHash(resultHash, resultSeal);
 
         final String teeChallengePrivateKey = EnvUtils.getEnvVarOrThrow(SIGN_TEE_CHALLENGE_PRIVATE_KEY, POST_COMPUTE_TEE_CHALLENGE_PRIVATE_KEY_MISSING);
 
