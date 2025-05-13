@@ -43,15 +43,14 @@ dependencies {
     implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
 
-    // This dependency is used by the application.
-    implementation 'com.google.guava:guava:27.1-jre'
-
     // Dropbox
     implementation 'com.dropbox.core:dropbox-core-sdk:3.1.1'
 
     // Apache Commons-lang3
     implementation 'org.apache.commons:commons-lang3'
 
+    // logback
+    runtimeOnly 'ch.qos.logback:logback-classic'
 }
 
 java {
@@ -77,9 +76,9 @@ testing {
             dependencies {
                 implementation platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
                 implementation "org.mockito:mockito-junit-jupiter"
+                implementation 'org.springframework:spring-test'
                 implementation "uk.org.webcompere:system-stubs-core:$systemStubsVersion"    // activates env var setting
                 implementation "uk.org.webcompere:system-stubs-jupiter:$systemStubsVersion" // activates env var setting
-                implementation "org.springframework:spring-test"
             }
         }
         itest(JvmTestSuite) {
